@@ -1,4 +1,5 @@
 from fastapi import FastAPI, Query
+from fastapi.middleware.cors import CORSMiddleware
 import pandas as pd
 from typing import List
 import uvicorn
@@ -9,6 +10,18 @@ CSV_FILE_NAME = f"{os.path.dirname(os.path.abspath(__file__))}/data/koi.csv"
 app = FastAPI()
 
 DATA = pd.read_csv(CSV_FILE_NAME, comment='#')
+
+origins = [
+    "http://localhost:3000",
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 @app.get("/exoplanets")
 async def get_exoplanets():

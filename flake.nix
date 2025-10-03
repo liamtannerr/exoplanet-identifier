@@ -17,6 +17,7 @@
             python312Packages.uvicorn
             python312Packages.pandas
             python312Packages.pydantic
+            nodejs_20
           ];
         };
       }
