@@ -13,9 +13,10 @@
       {
         devShells.default = pkgs.mkShell {
           packages = with pkgs; [
-            python311Packages.fastapi
-            python311Packages.uvicorn
-            python311Packages.pandas
+            python312Packages.fastapi
+            python312Packages.uvicorn
+            python312Packages.pandas
+            python312Packages.pydantic
           ];
         };
       }
