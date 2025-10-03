@@ -24,13 +24,26 @@ async def get_exoplanets():
         for record in DATA.fillna("").itertuples()
     ]
 
+def add_pp_planet_star_distance(data: pd.DataFrame) -> pd.DataFrame:
+    """
+    Add the planet-star distance to the data.
+
+    pp_planet_star_distance = koi_dor * koi_srad 
+    """
+    data["pp_planet_star_distance"] = data["koi_dor"] * data["koi_srad"]
+    return data
 
 @app.get("/exoplanets/metrics")
 async def get_exoplanet_metrics(kepid: List[str] = Query(default=[])):
     """
     Endpoint that reads koi.csv and returns the data as a list of JSON objects.
     """
-    return DATA[DATA["kepid"].astype(str).isin(kepid)].fillna("").to_dict(orient='records')
+    data = DATA
+    data = data.fillna("")
+    data = data[data["kepid"].astype(str).isin(kepid)]
+    data = add_pp_planet_star_distance(data)
+    data = data.to_dict(orient='records')
+    return data
 
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=8000)
