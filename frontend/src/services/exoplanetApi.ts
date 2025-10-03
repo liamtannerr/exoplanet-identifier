@@ -9,7 +9,8 @@ export async function fetchExoplanetList(): Promise<ExoplanetListItem[]> {
   const response = await fetch(`${API_URL}/exoplanets`);
   const data = await response.json();
   const customPlanets = customPlanetKepoiNameList.map(kepoi_name => customPlanetByKepoiName[kepoi_name]);
-  return [...customPlanets, ...data];
+  // TODO: use all data
+  return [...customPlanets, ...data.slice(0, 100)];
 }
 
 export async function fetchExoplanetDetails(kepoi_name: string): Promise<ExoplanetDetails | null> {
@@ -18,7 +19,6 @@ export async function fetchExoplanetDetails(kepoi_name: string): Promise<Exoplan
   }
   const response = await fetch(`${API_URL}/exoplanets/metrics?kepoi_name=${kepoi_name}`);
   let data = await response.json();
-  console.log(data);
   data = data[0];
   return data;
 }
