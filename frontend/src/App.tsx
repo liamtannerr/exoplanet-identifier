@@ -60,7 +60,7 @@ export default function App() {
   return (
     <div className="w-full h-screen bg-gray-900 flex dark">
       {/* Exoplanet Database - Full Left Panel */}
-      <div className="w-80 h-full bg-gray-900 border-r border-gray-700 p-4">
+      <div className="w-100 h-full bg-gray-900 border-r border-gray-700 p-4">
         <PlanetSelector
           selectedPlanets={selectedPlanets}
           onPlanetsChange={setSelectedPlanets}

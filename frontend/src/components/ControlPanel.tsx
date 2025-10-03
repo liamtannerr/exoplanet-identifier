@@ -52,7 +52,7 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
   ];
 
   return (
-    <div className="w-80 h-full bg-gray-900 border-r border-gray-700 p-4 overflow-y-auto">
+    <div className="w-100 h-full bg-gray-900 border-r border-gray-700 p-4 overflow-y-auto">
       <div className="space-y-6">
         <h2 className="text-white mb-6">Exoplanet System Controls</h2>
         
