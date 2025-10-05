@@ -31,7 +31,7 @@ function hybridOrbitDistance(
   const value =
     R <= Rc
       ? R * scale                        // linear near the star
-      : Rc + Math.log(scale*(R + R0)) / Math.log(base); // logarithmic far away
+      : Rc * scale + Math.log(scale*(R + R0)) / Math.log(base); // logarithmic far away
   return value;
 }
 export const ExoplanetScene: React.FC<ExoplanetSceneProps> = ({
