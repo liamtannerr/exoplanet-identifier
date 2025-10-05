@@ -328,14 +328,14 @@ export const ExoplanetScene: React.FC<ExoplanetSceneProps> = ({
         const planetMaterial = systemRef.planetMesh.material as THREE.MeshPhongMaterial;
         const starMaterial = systemRef.starMesh.material as THREE.MeshBasicMaterial;
         const orbitMaterial = systemRef.orbit.material as THREE.MeshBasicMaterial;
-        
+
         if (focusedPlanetRef.current === null) {
           // No focus - all suns grey and translucent except selected
           
           planetMaterial.color.setStyle(params.planetColor);
           planetMaterial.opacity = 1.0;
           starMaterial.color.setStyle(params.starColor);
-          starMaterial.opacity = 1;
+          starMaterial.opacity = 0.1;
           orbitMaterial.opacity = systemRef.orbit.userData.originalOpacity;
         
         } else if (isFocused) {
@@ -343,16 +343,15 @@ export const ExoplanetScene: React.FC<ExoplanetSceneProps> = ({
           planetMaterial.color.setStyle(params.planetColor);
           planetMaterial.opacity = 1.0;
           starMaterial.color.setStyle(params.starColor);
-          starMaterial.opacity = 1;
+          starMaterial.opacity = 0.1;
           orbitMaterial.opacity = systemRef.orbit.userData.originalOpacity;
-          console.log("isFocused: "+starMaterial.opacity+starMaterial.color.getHexString());
          
         } else {
           // This system is not focused - suns are grey and semi-transparent except selected sun
           planetMaterial.color.setStyle(params.planetColor);
           planetMaterial.opacity = 1.0;
           starMaterial.color.setHex(0x606060);
-          starMaterial.opacity = 0;
+          starMaterial.opacity = 0.1
           orbitMaterial.opacity = 0.05;
           /*
           planetMaterial.color.setHex(0x606060); // Darker grey for better contrast
@@ -362,8 +361,8 @@ export const ExoplanetScene: React.FC<ExoplanetSceneProps> = ({
           orbitMaterial.opacity = 0.05;
           */
         }
-        
         // Force material updates
+        
         planetMaterial.needsUpdate = true;
         starMaterial.needsUpdate = true;
         orbitMaterial.needsUpdate = true;
