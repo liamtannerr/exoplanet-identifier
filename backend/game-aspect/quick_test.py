@@ -9,6 +9,6 @@ row_dict = df.iloc[331].to_dict()
 planet = Planet(row_dict)
 print(planet.get_habitable())
 print(planet.get_environment())
-lifeform = Lifeform(row_dict)
+lifeform = Lifeform(row_dict, 0, str((0,0,0)), "None", "None", 0)
 
 format_to_json(planet, lifeform)
