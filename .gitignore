@@ -1,0 +1,9 @@
+scratch/
+
+__pycache__/
+
+.direnv/
+
+node_modules/
+
+.venv/
