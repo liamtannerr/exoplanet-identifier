@@ -203,7 +203,7 @@ export const PlanetSelector: React.FC<PlanetSelectorProps> = ({
               <Button 
                 variant="outline" 
                 size="sm"
-                className="bg-gray-700 border-gray-600 text-white hover:bg-gray-600"
+                className="bg-gray-700 hidden border-gray-600 text-white hover:bg-gray-600"
               >
                 <Plus size={16} className="mr-1" />
                 Add Planet
