@@ -7,7 +7,7 @@ import joblib
 import pandas as pd
 
 # Same-folder import
-from model.runtime.preprocessing import preprocess  # def preprocess(user_input: dict, mean_values, scaler) -> np.ndarray
+from .preprocessing import preprocess
 
 # Default to ../artifacts/ relative to this file
 DEFAULT_ARTIFACTS_DIR = (Path(__file__).resolve().parent / ".." / "artifacts").resolve()
