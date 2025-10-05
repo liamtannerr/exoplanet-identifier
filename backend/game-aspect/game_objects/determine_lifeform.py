@@ -1,4 +1,5 @@
 import pandas as pd
+import numpy as np
 import math
 
 class Lifeform:
@@ -134,11 +135,62 @@ class Lifeform:
         else:
             return "omnivore"
 
+    def get_environment(self):
+        """
+        Determines the most likely environment type of the planet
+        using only attributes from the Kepler cumulative dataset.
+
+        Uses:
+            - koi_teq: Equilibrium temperature (K)
+            - koi_prad: Planetary radius (Earth radii)
+            - koi_insol: Stellar flux relative to Earth
+        """
+
+        # Safely extract relevant attributes
+        teq = self.row.get('koi_teq', np.nan)
+        prad = self.row.get('koi_prad', np.nan)
+        insol = self.row.get('koi_insol', np.nan)
+
+        # Handle missing or NaN data
+        if np.isnan(teq) or np.isnan(prad) or np.isnan(insol):
+            self.environment = 'unknown'
+            return self.environment
+
+        # Volcanic / molten world — very high surface temp
+        if teq >= 700:
+            self.environment = 'volcanic'
+
+        # Gas giant — large radius, low or moderate temp
+        elif prad > 3.0:
+            self.environment = 'gas_giant'
+
+        # Ice world — low temp or low insolation
+        elif teq <= 200 or insol < 0.1:
+            self.environment = 'ice'
+
+        # Desert world — hot and high solar flux
+        elif teq > 320 or insol > 2.0:
+            self.environment = 'desert'
+
+        # Aquatic world — medium-large, temperate zone
+        elif 1.5 <= prad <= 3.0 and 200 < teq < 320:
+            self.environment = 'aquatic'
+
+        # Earth-like terrestrial world — small and temperate
+        elif prad < 1.5 and 200 < teq < 320:
+            self.environment = 'terrestrial'
+
+        else:
+            self.environment = 'unknown'
+
+        return self.environment
+
     def __str__(self):
         planet_name = self.row.get("kepler_name", "Unknown planet")
         return (f"Lifeform on {planet_name}:\n"
                 f"  Size: {self.get_size():.2f} m\n"
                 f"  Color (RGB): {self.get_color()}\n"
+                f"  Environment: {self.get_environment()}\n"
                 f"  Communication: {self.get_communication_method()}\n"
                 f"  Diet: {self.get_diet()}")
 
