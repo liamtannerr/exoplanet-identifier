@@ -27,6 +27,7 @@
   "koi_insol_err2": -16.65,
   "koi_model_snr": 35.8,
   "koi_tce_plnt_num": 1.0,
+  "koi_tce_delivname": "q1_q17_dr25_tce",
   "koi_steff": 5455.0,
   "koi_steff_err1": 81.0,
   "koi_steff_err2": -81.0,
@@ -38,7 +39,5 @@
   "koi_srad_err2": -0.061,
   "ra": 291.93423,
   "dec": 48.141651,
-  "koi_kepmag": 15.347,
-  "koi_tce_delivname_q1_q17_dr24_tce": false,
-  "koi_tce_delivname_q1_q17_dr25_tce": true
+  "koi_kepmag": 15.347
 }
