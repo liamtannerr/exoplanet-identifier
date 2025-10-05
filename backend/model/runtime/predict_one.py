@@ -7,7 +7,7 @@ import joblib
 import pandas as pd
 
 # Same-folder import
-from preprocessing import preprocess  # def preprocess(user_input: dict, mean_values, scaler) -> np.ndarray
+from model.runtime.preprocessing import preprocess  # def preprocess(user_input: dict, mean_values, scaler) -> np.ndarray
 
 # Default to ../artifacts/ relative to this file
 DEFAULT_ARTIFACTS_DIR = (Path(__file__).resolve().parent / ".." / "artifacts").resolve()
@@ -79,12 +79,14 @@ def predict_row(
     is_candidate = proba1 >= threshold
     confidence = proba1 if is_candidate else 1.0 - proba1
 
-    return {
+    result = {
         "is_candidate": bool(is_candidate),
         "confidence": confidence,
         "prob_candidate": proba1,
         "threshold": threshold,
     }
+
+    return result
 
 
 if __name__ == "__main__":
