@@ -8,9 +8,10 @@ def format_to_json(exoplanet, lifeform, output_path = "planet_profile.json"):
     - parameters
     - optional placeholder images
     """
+
     # --- Build Text Description -- #
     if exoplanet.habitable:
-        habitability_test = "This planet is habitable and may support life"
+        habitability_text = "This planet is habitable and may support life"
         life_text = (
             f"Lifeform: {lifeform.lifeform}\n"
             f"Size: {lifeform.size}\n"
