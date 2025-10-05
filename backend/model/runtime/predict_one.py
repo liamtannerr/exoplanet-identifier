@@ -32,7 +32,7 @@ def preprocess_single_row(row: Union[ModelRow, pd.Series, pd.DataFrame]) -> pd.D
     else:
         raise TypeError("row must be a dict, a pandas Series, or a 1-row DataFrame")
 
-    # Call teammate's function
+    # Run preprocess on the row
     df = preprocess(row_dict)
 
     # Validate result
