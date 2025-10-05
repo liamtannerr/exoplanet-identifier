@@ -794,12 +794,12 @@ export const ExoplanetScene: React.FC<ExoplanetSceneProps> = ({
           </button>
         </PopoverTrigger>
         <PopoverContent className="w-96 bg-gray-900 border-gray-700 mr-4 max-h-[80vh] overflow-y-auto">
-          <div className="space-y-3">
+          <div className="space-y-2">
             {selectedPlanetInfo ? (
               <>
                 <div className="border-b border-gray-700 pb-2">
                   <h3 className="text-white">{selectedPlanetInfo.display_name}</h3>
-                  <p className="text-xs text-gray-500">KOI ID: {selectedPlanetInfo.kepoi_name}</p>
+                  <p className="text-xs text-gray-400">KOI ID: {selectedPlanetInfo.kepoi_name}</p>
                 </div>
 
                 {/* Exoplanet Classification - only show if data is available */}
