@@ -873,7 +873,7 @@ export const ExoplanetScene: React.FC<ExoplanetSceneProps> = ({
                 </div>
 
                 {/* Hypothetical Life Properties - only show if data is available */}
-                {(selectedPlanetInfo.environment || selectedPlanetInfo.size || selectedPlanetInfo.color || selectedPlanetInfo.communication || selectedPlanetInfo.diet) && (
+                {/* {(selectedPlanetInfo.environment || selectedPlanetInfo.size || selectedPlanetInfo.color || selectedPlanetInfo.communication || selectedPlanetInfo.diet) && (
                   <div className="bg-gray-800 rounded-lg p-3">
                     <h4 className="text-white text-sm mb-2">Hypothetical Life</h4>
                     <div className="space-y-1 text-xs">
@@ -917,7 +917,7 @@ export const ExoplanetScene: React.FC<ExoplanetSceneProps> = ({
                       )}
                     </div>
                   </div>
-                )}
+                )} */}
 
                 <div className="text-gray-400 text-xs text-center">
                   🌍 Orbital speed proportional to actual period
