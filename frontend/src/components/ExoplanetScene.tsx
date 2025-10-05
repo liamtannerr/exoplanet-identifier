@@ -40,6 +40,7 @@ export const ExoplanetScene: React.FC<ExoplanetSceneProps> = ({
   const hoveredPlanetRef = useRef<string | null>(null);
   const currentMouseRef = useRef<THREE.Vector2>(new THREE.Vector2());
   const planetAnglesRef = useRef<Map<string, number>>(new Map());
+  const focusedPlanetRef = useRef<string | null>(null);
   const cameraTransitionRef = useRef<{
     isTransitioning: boolean;
     startPosition: THREE.Vector3;
@@ -164,9 +165,9 @@ export const ExoplanetScene: React.FC<ExoplanetSceneProps> = ({
     // Create 5-pointed star shape
     const createStarShape = () => {
       const shape = new THREE.Shape();
-      const outerRadius = 0.3;
-      const innerRadius = 0.15;
-      const points = 5;
+      const outerRadius = 0.35;
+      const innerRadius = 0.3;
+      const points = 9;
       
       for (let i = 0; i < points * 2; i++) {
         const angle = (i / (points * 2)) * Math.PI * 2;
@@ -193,11 +194,11 @@ export const ExoplanetScene: React.FC<ExoplanetSceneProps> = ({
     });
     
     const backgroundStars: THREE.Mesh[] = [];
-    for (let i = 0; i < 200; i++) {
+    for (let i = 0; i < 1000; i++) {
       const starMaterial = new THREE.MeshBasicMaterial({ 
         color: 0xffffff,
         transparent: true,
-        opacity: Math.random() * 0.8 + 0.2 // Random opacity between 0.2 and 1.0
+        opacity: Math.random() * 0.4 + .6 // Random opacity between 0.2 and 1.0
       });
       const star = new THREE.Mesh(starGeometry, starMaterial);
       
@@ -210,9 +211,9 @@ export const ExoplanetScene: React.FC<ExoplanetSceneProps> = ({
       
       // Random rotation
       star.rotation.set(
-        Math.random() * Math.PI * 2,
-        Math.random() * Math.PI * 2,
-        Math.random() * Math.PI * 2
+        0,
+        0,
+        0
       );
       
       // Random scale
@@ -289,7 +290,7 @@ export const ExoplanetScene: React.FC<ExoplanetSceneProps> = ({
       planetSystemsRef.current.forEach((systemRef, index) => {
         const { params } = systemRef;
         const isPaused = hoveredPlanetRef.current === params.kepoi_name;
-        const isFocused = focusedPlanet === params.kepoi_name;
+        const isFocused = focusedPlanetRef.current === params.kepoi_name;
         
         // Get or initialize the current angle for this planet
         if (!planetAnglesRef.current.has(params.kepoi_name)) {
@@ -328,27 +329,38 @@ export const ExoplanetScene: React.FC<ExoplanetSceneProps> = ({
         const starMaterial = systemRef.starMesh.material as THREE.MeshBasicMaterial;
         const orbitMaterial = systemRef.orbit.material as THREE.MeshBasicMaterial;
         
-        if (focusedPlanet === null) {
-          // No focus - all systems full color and opacity
+        if (focusedPlanetRef.current === null) {
+          // No focus - all suns grey and translucent except selected
+          
           planetMaterial.color.setStyle(params.planetColor);
           planetMaterial.opacity = 1.0;
           starMaterial.color.setStyle(params.starColor);
-          starMaterial.opacity = 1.0;
+          starMaterial.opacity = 1;
           orbitMaterial.opacity = systemRef.orbit.userData.originalOpacity;
+        
         } else if (isFocused) {
           // This system is focused - full color and opacity
           planetMaterial.color.setStyle(params.planetColor);
           planetMaterial.opacity = 1.0;
           starMaterial.color.setStyle(params.starColor);
-          starMaterial.opacity = 1.0;
+          starMaterial.opacity = 1;
           orbitMaterial.opacity = systemRef.orbit.userData.originalOpacity;
+          console.log("isFocused: "+starMaterial.opacity+starMaterial.color.getHexString());
+         
         } else {
-          // This system is not focused - grey and semi-transparent
+          // This system is not focused - suns are grey and semi-transparent except selected sun
+          planetMaterial.color.setStyle(params.planetColor);
+          planetMaterial.opacity = 1.0;
+          starMaterial.color.setHex(0x606060);
+          starMaterial.opacity = 0;
+          orbitMaterial.opacity = 0.05;
+          /*
           planetMaterial.color.setHex(0x606060); // Darker grey for better contrast
           planetMaterial.opacity = 0.4;
           starMaterial.color.setHex(0x606060);
           starMaterial.opacity = 0.4;
           orbitMaterial.opacity = 0.05;
+          */
         }
         
         // Force material updates
@@ -360,9 +372,9 @@ export const ExoplanetScene: React.FC<ExoplanetSceneProps> = ({
       // Subtle orbit opacity animation for focused/unfocused systems
       planetSystemsRef.current.forEach((systemRef, index) => {
         const orbitMaterial = systemRef.orbit.material as THREE.MeshBasicMaterial;
-        const isFocused = focusedPlanet === systemRef.params.kepoi_name;
+        const isFocused = focusedPlanetRef.current === systemRef.params.kepoi_name;
         
-        if (isFocused || focusedPlanet === null) {
+        if (isFocused || focusedPlanetRef.current === null) {
           const baseOpacity = systemRef.orbit.userData.originalOpacity;
           const pulseOpacity = baseOpacity + 0.1 * Math.sin(timeRef.current * 0.005 + index);
           orbitMaterial.opacity = Math.max(0.1, pulseOpacity);
@@ -415,6 +427,11 @@ export const ExoplanetScene: React.FC<ExoplanetSceneProps> = ({
       renderer.dispose();
     };
   }, []);
+
+  // Update focused planet ref when prop changes
+  useEffect(() => {
+    focusedPlanetRef.current = focusedPlanet;
+  }, [focusedPlanet]);
 
   // Generate persistent planet defaults to prevent re-randomization
   const getPlanetDefaults = (planet: PlanetVisualizationParams, index: number): PlanetVisualizationParams => {
