@@ -41,6 +41,7 @@ export const ExoplanetScene: React.FC<ExoplanetSceneProps> = ({
   const currentMouseRef = useRef<THREE.Vector2>(new THREE.Vector2());
   const planetAnglesRef = useRef<Map<string, number>>(new Map());
   const focusedPlanetRef = useRef<string | null>(null);
+  const lastFocusStateRef = useRef<string | null>(null);
   const cameraTransitionRef = useRef<{
     isTransitioning: boolean;
     startPosition: THREE.Vector3;
@@ -65,33 +66,41 @@ export const ExoplanetScene: React.FC<ExoplanetSceneProps> = ({
       return [0, baseDistance * Math.sin(angle), baseDistance * Math.cos(angle)];
     }
     
+    const distanceMultiplier = 13000; // This ensures good framing of the orbital circle
     // If a planet is focused, zoom in on its orbital radius
     if (focusedPlanet) {
       const focusedParams = planets.find(p => p.kepoi_name === focusedPlanet);
       if (focusedParams) {
-        // Calculate zoom based on the orbital distance of the focused planet
-        const systemSize = Math.max(focusedParams.planetDistance * 2.5, 8); // View the orbital radius with some padding
-        const baseDistance = systemSize + 5; // Add padding
+        const orbitalRadius = focusedParams.planetDistance;
+        const viewingAngle = 50; // degrees from above
+        const viewingAngleRad = (viewingAngle * Math.PI) / 180;
+        console.log(orbitalRadius, viewingAngle)     
+        // Simple calculation: position camera so orbital diameter fits nicely in view
+        // Use a multiplier that ensures the orbital path is well-framed
+        const cameraDistance = Math.max(orbitalRadius * distanceMultiplier, 7);
         
-        const angle = 50 * (Math.PI / 180);
-        
-        // All systems are centered at origin, so camera looks at (0, 0, 0)
+        // Calculate camera position at the viewing angle
         const position = [
           0, 
-          baseDistance * Math.sin(angle), 
-          baseDistance * Math.cos(angle)
+          cameraDistance * Math.sin(viewingAngleRad), 
+          cameraDistance * Math.cos(viewingAngleRad)
         ];
         
-        console.log(`Focused camera position for ${focusedPlanet}:`, position, `orbital distance: ${focusedParams.planetDistance}`);
+        console.log(`Focused camera for ${focusedPlanet}:`, {
+          orbitalRadius: orbitalRadius.toFixed(2),
+          cameraDistance: cameraDistance.toFixed(2),
+          position: position.map(p => p.toFixed(2))
+        });
+        
         return position;
       }
     }
     
     // When no planet is focused, zoom out to view the largest orbital radius
-    const maxOrbitalRadius = Math.max(...planets.map(p => p.planetDistance), 5);
-    const systemSize = maxOrbitalRadius * 3.0; // View the largest orbital radius with more padding
-    const baseDistance = Math.max(systemSize + 15, 40); // Ensure minimum distance for overview
-    
+    const maxOrbitalRadius = Math.max(...planets.map(p => p.planetDistance),0);
+    const systemSize = maxOrbitalRadius * distanceMultiplier; // View the largest orbital radius with more padding
+    const baseDistance = Math.max(systemSize + 5, 7); // Ensure minimum distance for overview
+    console.log(planets.length)
     // 50-degree angle from above
     const angle = 50 * (Math.PI / 180);
     const x = 0; // Center on the overlapping systems
@@ -165,9 +174,9 @@ export const ExoplanetScene: React.FC<ExoplanetSceneProps> = ({
     // Create 5-pointed star shape
     const createStarShape = () => {
       const shape = new THREE.Shape();
-      const outerRadius = 0.35;
-      const innerRadius = 0.3;
-      const points = 9;
+      const outerRadius = 0.3;
+      const innerRadius = 0.15;
+      const points = 5;
       
       for (let i = 0; i < points * 2; i++) {
         const angle = (i / (points * 2)) * Math.PI * 2;
@@ -194,11 +203,11 @@ export const ExoplanetScene: React.FC<ExoplanetSceneProps> = ({
     });
     
     const backgroundStars: THREE.Mesh[] = [];
-    for (let i = 0; i < 1000; i++) {
+    for (let i = 0; i < 200; i++) {
       const starMaterial = new THREE.MeshBasicMaterial({ 
         color: 0xffffff,
         transparent: true,
-        opacity: Math.random() * 0.4 + .6 // Random opacity between 0.2 and 1.0
+        opacity: Math.random() * 0.8 + 0.2 // Random opacity between 0.2 and 1.0
       });
       const star = new THREE.Mesh(starGeometry, starMaterial);
       
@@ -211,9 +220,9 @@ export const ExoplanetScene: React.FC<ExoplanetSceneProps> = ({
       
       // Random rotation
       star.rotation.set(
-        0,
-        0,
-        0
+        Math.random() * Math.PI * 2,
+        Math.random() * Math.PI * 2,
+        Math.random() * Math.PI * 2
       );
       
       // Random scale
@@ -236,13 +245,14 @@ export const ExoplanetScene: React.FC<ExoplanetSceneProps> = ({
       // Handle smooth camera transitions
       if (cameraTransitionRef.current.isTransitioning && cameraRef.current) {
         const transition = cameraTransitionRef.current;
-        transition.progress += 0.02; // Transition speed
+        transition.progress += 0.04; // Faster transition speed
         
         if (transition.progress >= 1) {
           // Transition complete
           cameraRef.current.position.copy(transition.targetPosition);
           transition.isTransitioning = false;
           transition.progress = 0;
+          console.log('Camera transition complete');
         } else {
           // Smooth interpolation
           const t = transition.progress;
@@ -290,7 +300,6 @@ export const ExoplanetScene: React.FC<ExoplanetSceneProps> = ({
       planetSystemsRef.current.forEach((systemRef, index) => {
         const { params } = systemRef;
         const isPaused = hoveredPlanetRef.current === params.kepoi_name;
-        const isFocused = focusedPlanetRef.current === params.kepoi_name;
         
         // Get or initialize the current angle for this planet
         if (!planetAnglesRef.current.has(params.kepoi_name)) {
@@ -324,48 +333,11 @@ export const ExoplanetScene: React.FC<ExoplanetSceneProps> = ({
         const pulseFactor = 1.0 + 0.05 * Math.sin(timeRef.current * pulseSpeed + index);
         systemRef.starMesh.scale.setScalar(pulseFactor);
         
-        // Update materials based on focus state
-        const planetMaterial = systemRef.planetMesh.material as THREE.MeshPhongMaterial;
-        const starMaterial = systemRef.starMesh.material as THREE.MeshBasicMaterial;
-        const orbitMaterial = systemRef.orbit.material as THREE.MeshBasicMaterial;
-
-        if (focusedPlanetRef.current === null) {
-          // No focus - all suns grey and translucent except selected
-          
-          planetMaterial.color.setStyle(params.planetColor);
-          planetMaterial.opacity = 1.0;
-          starMaterial.color.setStyle(params.starColor);
-          starMaterial.opacity = 0.1;
-          orbitMaterial.opacity = systemRef.orbit.userData.originalOpacity;
-        
-        } else if (isFocused) {
-          // This system is focused - full color and opacity
-          planetMaterial.color.setStyle(params.planetColor);
-          planetMaterial.opacity = 1.0;
-          starMaterial.color.setStyle(params.starColor);
-          starMaterial.opacity = 0.1;
-          orbitMaterial.opacity = systemRef.orbit.userData.originalOpacity;
-         
-        } else {
-          // This system is not focused - suns are grey and semi-transparent except selected sun
-          planetMaterial.color.setStyle(params.planetColor);
-          planetMaterial.opacity = 1.0;
-          starMaterial.color.setHex(0x606060);
-          starMaterial.opacity = 0.1
-          orbitMaterial.opacity = 0.05;
-          /*
-          planetMaterial.color.setHex(0x606060); // Darker grey for better contrast
-          planetMaterial.opacity = 0.4;
-          starMaterial.color.setHex(0x606060);
-          starMaterial.opacity = 0.4;
-          orbitMaterial.opacity = 0.05;
-          */
+        // Check if we need to update materials (only when focus state changes)
+        if (lastFocusStateRef.current !== focusedPlanetRef.current) {
+          updateSystemMaterials();
+          lastFocusStateRef.current = focusedPlanetRef.current;
         }
-        // Force material updates
-        
-        planetMaterial.needsUpdate = true;
-        starMaterial.needsUpdate = true;
-        orbitMaterial.needsUpdate = true;
       });
 
       // Subtle orbit opacity animation for focused/unfocused systems
@@ -427,9 +399,87 @@ export const ExoplanetScene: React.FC<ExoplanetSceneProps> = ({
     };
   }, []);
 
+  // Function to update all system materials based on focus state
+  const updateSystemMaterials = () => {
+    planetSystemsRef.current.forEach((systemRef) => {
+      const { params } = systemRef;
+      const isFocused = focusedPlanetRef.current === params.kepoi_name;
+      
+      const planetMaterial = systemRef.planetMesh.material as THREE.MeshPhongMaterial;
+      const starMaterial = systemRef.starMesh.material as THREE.MeshBasicMaterial;
+      const orbitMaterial = systemRef.orbit.material as THREE.MeshBasicMaterial;
+      
+      if (focusedPlanetRef.current === null) {
+        // No focus - all systems full color and opacity
+        planetMaterial.color.setStyle(params.planetColor);
+        planetMaterial.opacity = 1.0;
+        planetMaterial.transparent = false;
+        starMaterial.color.setStyle(params.starColor);
+        starMaterial.opacity = 1.0;
+        starMaterial.transparent = false;
+        orbitMaterial.opacity = systemRef.orbit.userData.originalOpacity;
+        
+        systemRef.planetMesh.visible = true;
+        systemRef.starMesh.visible = true;
+        systemRef.orbit.visible = true;
+      } else if (isFocused) {
+        // This system is focused - full color and opacity
+        console.log(`Updating focused planet ${params.kepoi_name} with colors:`, params.planetColor, params.starColor);
+        planetMaterial.color.setStyle(params.planetColor);
+        planetMaterial.opacity = 1.0;
+        planetMaterial.transparent = false;
+        starMaterial.color.setStyle(params.starColor);
+        starMaterial.opacity = 1.0;
+        starMaterial.transparent = false;
+        orbitMaterial.opacity = systemRef.orbit.userData.originalOpacity;
+        
+        systemRef.planetMesh.visible = true;
+        systemRef.starMesh.visible = true;
+        systemRef.orbit.visible = true;
+      } else {
+        // This system is not focused - grey and semi-transparent
+        planetMaterial.color.setHex(0x606060);
+        planetMaterial.opacity = 0.4;
+        planetMaterial.transparent = true;
+        starMaterial.color.setHex(0x606060);
+        starMaterial.opacity = 0.4;
+        starMaterial.transparent = true;
+        orbitMaterial.opacity = 0.05;
+        
+        systemRef.planetMesh.visible = true;
+        systemRef.starMesh.visible = true;
+        systemRef.orbit.visible = true;
+      }
+      
+      // Force material updates
+      planetMaterial.needsUpdate = true;
+      starMaterial.needsUpdate = true;
+      orbitMaterial.needsUpdate = true;
+    });
+  };
+
   // Update focused planet ref when prop changes
   useEffect(() => {
     focusedPlanetRef.current = focusedPlanet;
+    // Update materials immediately when focus changes
+    updateSystemMaterials();
+    lastFocusStateRef.current = focusedPlanet;
+    
+    // Force camera position update when focus changes
+    if (cameraRef.current) {
+      const [camX, camY, camZ] = getCameraPosition();
+      const newPosition = new THREE.Vector3(camX, camY, camZ);
+      const currentPosition = cameraRef.current.position;
+      
+      console.log(`Focus changed to ${focusedPlanet}, updating camera from ${currentPosition.toArray().map(v => v.toFixed(2))} to ${newPosition.toArray().map(v => v.toFixed(2))}`);
+      
+      cameraTransitionRef.current = {
+        isTransitioning: true,
+        startPosition: currentPosition.clone(),
+        targetPosition: newPosition,
+        progress: 0
+      };
+    }
   }, [focusedPlanet]);
 
   // Generate persistent planet defaults to prevent re-randomization
@@ -531,7 +581,8 @@ export const ExoplanetScene: React.FC<ExoplanetSceneProps> = ({
           color: planetProps.starColor,
           emissive: planetProps.starColor,
           emissiveIntensity: 0.3,
-          transparent: true
+          transparent: false,
+          opacity: 1.0
         });
         const star = new THREE.Mesh(starGeometry, starMaterial);
         star.position.set(0, 0, 0); // Star at center of system
@@ -553,7 +604,8 @@ export const ExoplanetScene: React.FC<ExoplanetSceneProps> = ({
           color: planetProps.planetColor,
           shininess: 60,
           specular: 0x222222,
-          transparent: true
+          transparent: false,
+          opacity: 1.0
         });
         const planet = new THREE.Mesh(planetGeometry, planetMaterial);
         planet.castShadow = true;
@@ -588,6 +640,9 @@ export const ExoplanetScene: React.FC<ExoplanetSceneProps> = ({
           systemGroup: systemGroup,
           params: planetProps
         });
+        
+        // Update materials for the newly added planet
+        setTimeout(() => updateSystemMaterials(), 0);
       }
     });
 
@@ -602,21 +657,19 @@ export const ExoplanetScene: React.FC<ExoplanetSceneProps> = ({
       const [camX, camY, camZ] = getCameraPosition();
       const newPosition = new THREE.Vector3(camX, camY, camZ);
       
-      // Start camera transition if position changed significantly
+      // Start camera transition if position changed
       const currentPosition = cameraRef.current.position;
       const distance = currentPosition.distanceTo(newPosition);
       
-      if (distance > 0.1) { // Lower threshold to ensure transitions between focus states
+      // Always transition when focus changes or when distance is significant
+      if (distance > 0.01) { // Very low threshold to catch all meaningful changes
+        console.log(`Starting camera transition: distance=${distance.toFixed(2)}, from=${currentPosition.toArray().map(v => v.toFixed(2))} to=${newPosition.toArray().map(v => v.toFixed(2))}`);
         cameraTransitionRef.current = {
           isTransitioning: true,
           startPosition: currentPosition.clone(),
           targetPosition: newPosition,
           progress: 0
         };
-      } else {
-        // Small movement, no transition needed
-        cameraRef.current.position.copy(newPosition);
-        cameraRef.current.lookAt(0, 0, 0);
       }
     }
 
