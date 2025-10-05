@@ -9,7 +9,7 @@ class Lifeform:
     diet: str
     environment: str
 
-    def __init__(self, csv_row, size, color, communication, diet, environment, base_size=2.0 ):
+    def __init__(self, csv_row, size, color, communication, diet, environment, base_size=2.0):
         self.row = csv_row
         self._base_size = base_size
         self._environment = environment
@@ -19,23 +19,6 @@ class Lifeform:
         self._diet = diet
 
     # --- Getters and Setters ---
-    def get_base_size(self):
-        return self._base_size
-    
-    def get_environment(self):
-        return self._environment
-    
-    def get_size(self):
-        return self._size
-
-    def get_color(self):
-        return self._color
-    
-    def get_communication(self):
-        return self._communication
-    
-    def get_diet(self):
-        return self.diet
     
     def set_size(self, size):
         self.size = size
@@ -60,6 +43,10 @@ class Lifeform:
 
 
     # --- Lifeform Attribute Methods ---
+
+    def get_base_size(self):
+        return self._base_size
+
     def get_size(self):
         """
         Estimate lifeform size using planet radius, temperature, and insolation.
@@ -94,22 +81,22 @@ class Lifeform:
         size = self._base_size * gravity_factor * temp_factor * env_factor * energy_factor
         return max(size, 0.1)
 
-    # def get_color(self):
-    #     """
-    #     Generate a color based on stellar temperature and insolation.
-    #     """
-    #     row = self.row
-    #     star_temp = row.get("koi_steff", 5500)
-    #     insolation = row.get("koi_insol", 1.0)
+    def get_color(self):
+        """
+        Generate a color based on stellar temperature and insolation.
+        """
+        row = self.row
+        star_temp = row.get("koi_steff", 5500)
+        insolation = row.get("koi_insol", 1.0)
 
-    #     if pd.isna(star_temp): star_temp = 5500
-    #     if pd.isna(insolation): insolation = 1.0
+        if pd.isna(star_temp): star_temp = 5500
+        if pd.isna(insolation): insolation = 1.0
 
-    #     r = int(min(max((star_temp - 3000) / 4000 * 255, 0), 255))
-    #     g = int(min(max((1 / (insolation + 1)) * 200, 0), 255))
-    #     b = int(min(max((insolation / 2) * 100, 0), 255))
+        r = int(min(max((star_temp - 3000) / 4000 * 255, 0), 255))
+        g = int(min(max((1 / (insolation + 1)) * 200, 0), 255))
+        b = int(min(max((insolation / 2) * 100, 0), 255))
 
-    #     return str((r, g, b))
+        return str((r, g, b))
 
     def get_communication_method(self):
         """
@@ -160,4 +147,4 @@ df = pd.read_csv("cumulative_2025.10.04_13.06.32.csv")
 first_planet = df.iloc[0]
 
 creature = Lifeform(first_planet, 0, str((0,0,0)), "None", "None", 0)
-print(creature.get_color())
+print(creature)
