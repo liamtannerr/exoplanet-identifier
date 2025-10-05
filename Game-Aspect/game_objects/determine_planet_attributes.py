@@ -1,38 +1,36 @@
 import math
 import pandas as pd
-# # Creates planet object based on passed in .csv information
 
-# class Exoplanet:
-#     habitable: bool
-#     size: float
-#     environment: str
+# Creates planet object based on passed in .csv information
+
+class Exoplanet:
+    habitable: bool
+    size: float
+    environment: str
 
 
-#     def __init__(self, habitable: bool, size: float, atmosphere: str):
-#         self.habitable = habitable
-#         self.size = size
-#         self.atmosphere = atmosphere
+    def __init__(self, habitable: bool, size: float, atmosphere: str):
+        self.habitable = habitable
+        self.size = size
+        self.atmosphere = atmosphere
 
-#     def set_habitable(self, habitable):
-#         self.habitable = habitable
+    def set_habitable(self, habitable):
+        self.habitable = habitable
     
-#     def set_size(self, size):
-#         self.size = size
+    def set_size(self, size):
+        self.size = size
 
-#     def set_environment(self, environment):
-#         self.environment = environment
+    def set_environment(self, environment):
+        self.environment = environment
         
-
-#     def get_habitable(self):
-#         return self.habitable
+    def get_habitable(self):
+        return self.habitable
     
-#     def get_size(self):
-#         return self.size
+    def get_size(self):
+        return self.size
     
-#     def get_environment(self):
-#         return self.environment
-
-
+    def get_environment(self):
+        return self.environment
 
 class Planet:
 
@@ -87,15 +85,123 @@ class Planet:
         # All conditions passed → potentially habitable
         return True
 
+    def get_environment(self):
+        """
+        Classify an exoplanet's environment into one of 9 concise types 
+        using planetary and stellar properties.
+
+        Parameters
+        ----------
+        row : dict or pandas.Series
+            Planetary and stellar parameters:
+            - koi_teq : equilibrium temperature (K)
+            - koi_prad : planet radius (Earth radii)
+            - pl_bmasse : planet mass (Earth masses)
+
+        Returns
+        -------
+        str: environment type
+            Rocky planets
+                Frozen rocky — small, cold, rocky planets
+                Earth-like — small, temperate, rocky planets
+                Hot rocky — small, hot, rocky planets
+            Mini-Neptunes
+                Cold Mini-Neptune — intermediate size, cold
+                Temperate Mini-Neptune — intermediate size, temperate
+                Hot Mini-Neptune — intermediate size, hot
+            Gas and Ice Giants
+                Ice Giant — large/giant, cold
+                Gas Giant — large/giant, temperate
+                Hot Jupiter — large/giant, hot
+            Unclassified — any planet that doesn’t fit the above thresholds (rare or extreme/missing data)
+        """
+        row = self.row
+
+        # --- Extract values with defaults ---
+        # Radius in Earth radii
+        pl_rade = row.get("koi_prad", 1.0)
+        pl_rade = float(pl_rade) if not pd.isna(pl_rade) else 1.0
+
+        # Equilibrium temperature in K
+        pl_eqt = row.get("koi_teq", 288)
+        pl_eqt = float(pl_eqt) if not pd.isna(pl_eqt) else 288
+
+        # Mass in Earth masses
+        pl_bmasse = row.get("pl_bmasse", None)
+        if pl_bmasse is None or pd.isna(pl_bmasse):
+            # Estimate mass from radius
+            if pl_rade < 1.8:
+                # Rocky planet approximation: M ~ R^3
+                pl_bmasse = pl_rade ** 3
+            elif pl_rade < 3.5:
+                # Mini-Neptune approximation: M ~ R^2.06
+                pl_bmasse = pl_rade ** 2.06
+            else:
+                # Giant planets: default mass
+                pl_bmasse = 10.0
+        else:
+            pl_bmasse = float(pl_bmasse)
+
+        # --- Planet type by size and mass ---
+        if pl_rade < 1.8 and pl_bmasse < 5:
+            planet_type = "Rocky"
+        elif 1.8 <= pl_rade < 3.5:
+            planet_type = "Mini-Neptune"
+        elif pl_rade >= 3.5 or pl_bmasse >= 10:
+            planet_type = "Giant"
+        else:
+            planet_type = "Unclassified"
+
+        # --- Thermal class based on equilibrium temperature ---
+        if pl_eqt < 180:
+            temp_class = "Cold"
+        elif pl_eqt <= 320:
+            temp_class = "Temperate"
+        else:
+            temp_class = "Hot"
+
+        # --- Combine into concise environment classes ---
+        if planet_type == "Rocky":
+            if temp_class == "Cold":
+                env = "Frozen rocky"
+            elif temp_class == "Temperate":
+                env = "Earth-like"
+            else:
+                env = "Hot rocky"
+        elif planet_type == "Mini-Neptune":
+            if temp_class == "Cold":
+                env = "Cold Mini-Neptune"
+            elif temp_class == "Temperate":
+                env = "Temperate Mini-Neptune"
+            else:
+                env = "Hot Mini-Neptune"
+        elif planet_type == "Giant":
+            if temp_class == "Cold":
+                env = "Ice Giant"
+            elif temp_class == "Temperate":
+                env = "Gas Giant"
+            else:
+                env = "Hot Jupiter"
+        else:
+            env = "Unclassified"
+
+        return env
+    
     def __str__(self):
         planet_name = self.row.get("kepler_name", "Unknown planet")
         return f"{planet_name}: Habitable? {self.get_habitable()}"
 
-
-# --- Example Usage ---
 df = pd.read_csv("cumulative_2025.10.04_13.06.32.csv")
 first_planet = df.iloc[0]
 
 planet = Planet(first_planet)
 print(planet)
+
+print("testing get_environment: \n")
+for i in range(3):
+    row_dict = df.iloc[i].to_dict()
+    planet = Planet(row_dict)
+    env = planet.get_environment()
+    print(f"Row {i+1}: {env}")
+
 
