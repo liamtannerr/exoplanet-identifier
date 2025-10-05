@@ -1,50 +1,100 @@
-# tests/test_from_csv.py
+# tests/test.py
 from pathlib import Path
-import sys
+import sys, csv, json
 import pandas as pd
 
-# Add ../runtime to sys.path so we can import predict_one.py
+# ---- Paths (relative to this test file) ----
 THIS_DIR = Path(__file__).resolve().parent
 RUNTIME_DIR = (THIS_DIR / ".." / "runtime").resolve()
-sys.path.insert(0, str(RUNTIME_DIR))
+ARTIFACTS_DIR = (THIS_DIR / ".." / "artifacts").resolve()
+CSV_PATH = (THIS_DIR / ".." / ".." / "training-data" / "exoplanet_predictions_full.csv").resolve()
 
-from predict_one import predict_row  # now import works
+# Make ../runtime importable
+sys.path.insert(0, str(RUNTIME_DIR))
+from predict_one import predict_row  # noqa: E402
+
+N_ROWS = 100
+THRESHOLD = 0.5
+
+def read_any_delim(path: Path) -> pd.DataFrame:
+    """Read CSV/TSV with simple delimiter auto-detection."""
+    sample = path.read_text(errors="ignore")[:65536]
+    try:
+        dialect = csv.Sniffer().sniff(sample, delimiters=",\t;|")
+        sep = dialect.delimiter
+    except Exception:
+        sep = ","
+    return pd.read_csv(path, sep=sep, comment="#")
+
+def parse_label(val):
+    """Return bool for candidate/confirmed if available, else None."""
+    if val is None:
+        return None
+    # text labels
+    if isinstance(val, str):
+        v = val.strip().upper()
+        if v == "CANDIDATE":
+            return True
+        if v == "CONFIRMED":
+            return False
+        # sometimes numeric-in-string
+        try:
+            return bool(int(float(v)))
+        except Exception:
+            return None
+    # numeric labels (0/1)
+    if isinstance(val, (int, float)):
+        try:
+            return bool(int(val))
+        except Exception:
+            return None
+    return None
 
 def main():
-    if len(sys.argv) < 2:
-        print("Usage: python tests/test_from_csv.py /absolute/path/to/kepler-data.csv")
-        sys.exit(64)
+    if not CSV_PATH.exists():
+        raise FileNotFoundError(f"CSV not found at {CSV_PATH}")
+    if not ARTIFACTS_DIR.exists():
+        raise FileNotFoundError(f"Artifacts folder not found at {ARTIFACTS_DIR}")
 
-    csv_path = Path(sys.argv[1]).expanduser().resolve()
-    if not csv_path.exists():
-        raise FileNotFoundError(f"CSV not found at {csv_path}")
-
-    # artifacts live at ../artifacts relative to this test file
-    artifacts_dir = (THIS_DIR / ".." / "artifacts").resolve()
-
-    # read the csv like training did
-    df = pd.read_csv(csv_path, comment="#")
+    df = read_any_delim(CSV_PATH)
     if df.empty:
-        raise ValueError("CSV has no rows after filtering comments with comment='#'.")
+        raise ValueError("CSV appears to be empty after parsing.")
 
-    # first row to dict, then score it
-    raw_row = df.iloc[0].to_dict()
-    out = predict_row(raw_row, artifacts_dir=artifacts_dir, threshold=0.5)
+    df = df.head(min(N_ROWS, len(df)))
 
-    # optional, compare to label if present
-    y_raw = raw_row.get("koi_disposition")
-    y_true = None
-    if isinstance(y_raw, str):
-        y_up = y_raw.upper()
-        if y_up == "CANDIDATE":
-            y_true = 1
-        elif y_up == "CONFIRMED":
-            y_true = 0
+    print(f"Loaded CSV: {CSV_PATH}")
+    print(f"Using artifacts: {ARTIFACTS_DIR}")
+    print(f"Scoring first {len(df)} rows with threshold={THRESHOLD}\n")
 
-    print("First row koi_disposition (raw):", y_raw)
-    print("Result:", out)
-    if y_true is not None:
-        print("Matches label?:", bool(y_true) == out.get("is_candidate", out.get("pred") == 1))
+    n_with_label = 0
+    n_match = 0
+
+    # header
+    print("idx | koi_disposition | is_candidate | prob_candidate | confidence | match")
+    print("----+-----------------+-------------+----------------+------------+------")
+
+    for i, (_, row) in enumerate(df.iterrows(), start=1):
+        raw = row.to_dict()
+        out = predict_row(raw, artifacts_dir=ARTIFACTS_DIR, threshold=THRESHOLD)
+
+        y_true = parse_label(raw.get("koi_disposition"))
+        match = None
+        if y_true is not None:
+            n_with_label += 1
+            match = (out.get("is_candidate") == y_true)
+            if match:
+                n_match += 1
+
+        print(f"{i:>3} | {str(raw.get('koi_disposition')):<15} | "
+              f"{str(out['is_candidate']):>11} | {out['prob_candidate']:>14.6f} | "
+              f"{out['confidence']:>10.6f} | {str(match)}")
+
+    if n_with_label:
+        acc = n_match / n_with_label
+        print(f"\nLabeled rows: {n_with_label}, correct: {n_match}, accuracy: {acc:.4f}")
+    else:
+        print("\nNo ground-truth labels found in 'koi_disposition' to compare against.")
 
 if __name__ == "__main__":
     main()
+
