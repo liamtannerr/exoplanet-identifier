@@ -795,7 +795,7 @@ export const ExoplanetScene: React.FC<ExoplanetSceneProps> = ({
         </PopoverTrigger>
         <PopoverContent className="w-96 bg-gray-900 border-gray-700 mr-4 max-h-[80vh] overflow-y-auto">
           <div className="space-y-2">
-            {selectedPlanetInfo ? (
+            {selectedPlanetInfo && planets.length > 0 && (
               <>
                 <div className="border-b border-gray-700 pb-2">
                   <h3 className="text-white">{selectedPlanetInfo.display_name}</h3>
@@ -919,27 +919,8 @@ export const ExoplanetScene: React.FC<ExoplanetSceneProps> = ({
                   </div>
                 )}
 
-                <div className="text-blue-400 text-xs text-center">
+                <div className="text-gray-400 text-xs text-center">
                   🌍 Orbital speed proportional to actual period
-                </div>
-              </>
-            ) : (
-              <>
-                <h3 className="text-white">Planetary Systems</h3>
-                <div className="p-3 rounded-lg bg-gray-800 border border-gray-600">
-                  <p className="text-gray-300 text-sm">
-                    {planets.length > 0 
-                      ? `Currently displaying ${planets.length} planetary system${planets.length > 1 ? 's' : ''}. Click on a planet to focus on its system.`
-                      : 'No planets currently selected. Choose planets from the database to visualize their orbital systems.'
-                    }
-                  </p>
-                  {focusedPlanet && (
-                    <div className="mt-3 p-2 rounded bg-blue-900/50 border border-blue-500/50">
-                      <p className="text-blue-200 text-sm">
-                        🔍 Focused on {planets.find(p => p.kepoi_name === focusedPlanet)?.display_name || focusedPlanet}
-                      </p>
-                    </div>
-                  )}
                 </div>
               </>
             )}
