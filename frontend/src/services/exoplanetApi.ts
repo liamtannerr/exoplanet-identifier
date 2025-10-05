@@ -48,16 +48,37 @@ export function temperatureToStarColor(temperature: number): string {
   return '#66AAFF'; // Bright blue for hot stars
 }
 
+export const CSS_COLOR_NAMES: string[] = [
+  "Aqua", "Aquamarine", "Blue", "BlueViolet", "BurlyWood", "CadetBlue",
+  "Chartreuse", "Chocolate", "Coral", "CornflowerBlue", "Crimson", "Cyan",
+  "DarkBlue", "DarkCyan", "DarkGoldenRod", "DarkKhaki", "DarkMagenta",
+  "DarkOrange", "DarkOrchid", "DarkSalmon", "DarkSeaGreen", "DarkSlateBlue",
+  "DarkTurquoise", "DarkViolet", "DeepPink", "DeepSkyBlue", "DodgerBlue",
+  "FireBrick", "ForestGreen", "Fuchsia", "Gold", "GoldenRod", "Green",
+  "GreenYellow", "HotPink", "IndianRed", "Khaki", "Lavender", "LawnGreen",
+  "LightBlue", "LightCoral", "LightCyan", "LightGreen", "LightPink",
+  "LightSalmon", "LightSeaGreen", "LightSkyBlue", "LightSteelBlue", "Lime",
+  "LimeGreen", "Magenta", "MediumAquaMarine", "MediumBlue", "MediumOrchid",
+  "MediumPurple", "MediumSeaGreen", "MediumSlateBlue", "MediumSpringGreen",
+  "MediumTurquoise", "MediumVioletRed", "Orange", "OrangeRed", "Orchid",
+  "PaleGoldenRod", "PaleGreen", "PaleTurquoise", "PaleVioletRed", "PeachPuff",
+  "Peru", "Pink", "Plum", "PowderBlue", "Purple", "RebeccaPurple", "Red",
+  "RosyBrown", "RoyalBlue", "SaddleBrown", "Salmon", "SandyBrown", "SeaGreen",
+  "SkyBlue", "SlateBlue", "SpringGreen", "SteelBlue", "Tan", "Thistle",
+  "Tomato", "Turquoise", "Violet", "Wheat", "Yellow", "YellowGreen"
+];
+
 // Convert planet equilibrium temperature to realistic planet color
 export function temperatureToPlanetColor(temperature: number): string {
-  if (temperature >= 2000) return '#ff4500'; // Very hot: Orange-red (lava worlds)
-  if (temperature >= 1500) return '#ff6347'; // Hot: Red-orange (molten surface)
-  if (temperature >= 1000) return '#ffa500'; // Warm: Orange (Venus-like)
-  if (temperature >= 700) return '#ffff00';  // Temperate hot: Yellow
-  if (temperature >= 400) return '#90ee90';  // Temperate: Light green (potentially habitable)
-  if (temperature >= 200) return '#4169e1';  // Cool: Blue (Earth-like)
-  if (temperature >= 100) return '#87ceeb';  // Cold: Light blue (ice worlds)
-  return '#b0c4de'; // Very cold: Light steel blue (frozen worlds)
+  // if (temperature >= 2000) return '#ff4500'; // Very hot: Orange-red (lava worlds)
+  // if (temperature >= 1500) return '#ff6347'; // Hot: Red-orange (molten surface)
+  // if (temperature >= 1000) return '#ffa500'; // Warm: Orange (Venus-like)
+  // if (temperature >= 700) return '#ffff00';  // Temperate hot: Yellow
+  // if (temperature >= 400) return '#90ee90';  // Temperate: Light green (potentially habitable)
+  // if (temperature >= 200) return '#4169e1';  // Cool: Blue (Earth-like)
+  // if (temperature >= 100) return '#87ceeb';  // Cold: Light blue (ice worlds)
+  // return '#b0c4de'; // Very cold: Light steel blue (frozen worlds)
+  return CSS_COLOR_NAMES[temperature % CSS_COLOR_NAMES.length];
 }
 
 // Convert orbital radius from solar radii to AU (1 AU ≈ 215 solar radii)
