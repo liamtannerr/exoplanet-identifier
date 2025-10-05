@@ -17,6 +17,8 @@
             python312Packages.uvicorn
             python312Packages.pandas
             python312Packages.pydantic
+            python312Packages.joblib
+            python312Packages.scikit-learn
             nodejs_20
           ];
         };

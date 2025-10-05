@@ -811,7 +811,7 @@ export const ExoplanetScene: React.FC<ExoplanetSceneProps> = ({
                         <div className="flex justify-between">
                           <span className="text-gray-400">Exoplanet Status:</span>
                           <span className={selectedPlanetInfo.is_exoplanet ? "text-green-400" : "text-red-400"}>
-                            {selectedPlanetInfo.is_exoplanet ? "✓ Confirmed" : "✗ Not Confirmed"}
+                            {selectedPlanetInfo.is_exoplanet ? "✓ Likely Exoplanet" : "✗ Unlikely Exoplanet"}
                           </span>
                         </div>
                       )}
