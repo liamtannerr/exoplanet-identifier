@@ -12,6 +12,13 @@ export interface ExoplanetDetails {
   orbital_radius: number; // solar radii
   temperature: number; // Kelvin - planet temperature
   stellar_temperature?: number; // Kelvin - star temperature (optional for existing data)
+  is_exoplanet: boolean;
+  is_exoplanet_confidence: number;
+  environment: string;
+  size: Float32Array;
+  color: string;
+  communication: string;
+  diet: string;
 }
 
 export interface SelectedPlanet extends ExoplanetDetails {

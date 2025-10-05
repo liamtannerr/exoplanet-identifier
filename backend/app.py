@@ -6,6 +6,8 @@ import uvicorn
 import pydantic
 import os
 
+from model.runtime.predict_one import predict_row
+
 CSV_FILE_NAME = f"{os.path.dirname(os.path.abspath(__file__))}/data/koi.csv"
 
 app = FastAPI()
@@ -31,7 +33,7 @@ DATA = DATA.rename(columns={
     "koi_steff": "stellar_temperature",
 })
 # select only required columns
-DATA = DATA[["kepoi_name", "kepler_name", "orbital_period", "planet_radius", "stellar_radius", "temperature", "stellar_temperature", "orbital_radius"]]
+# DATA = DATA[["kepoi_name", "kepler_name", "orbital_period", "planet_radius", "stellar_radius", "temperature", "stellar_temperature", "orbital_radius"]]
 
 origins = [
     "http://localhost:3000",
@@ -67,6 +69,8 @@ class ExoplanetMetrics(pydantic.BaseModel):
     orbital_radius: float # koi_dor * koi_srad
     temperature: float # koi_teq
     stellar_temperature: float # koi_steff
+    is_exoplanet: bool = False
+    is_exoplanet_confidence: float = 0.0
 
 @app.get("/exoplanets/metrics")
 async def get_exoplanet_metrics(kepoi_name: List[str] = Query(default=[])):
@@ -75,7 +79,14 @@ async def get_exoplanet_metrics(kepoi_name: List[str] = Query(default=[])):
     """
     data = DATA[DATA["kepoi_name"].astype(str).isin(kepoi_name)].copy()
     data = data.to_dict(orient='records')
-    data = [ExoplanetMetrics(**record) for record in data]
+    predictions = [
+        {
+            "is_exoplanet": predict["is_candidate"],
+            "is_exoplanet_confidence": predict["confidence"],
+        }
+        for predict in (predict_row(record) for record in data)
+    ]
+    data = [ExoplanetMetrics(**record, **prediction) for record, prediction in zip(data, predictions)]
     return data
 
 if __name__ == "__main__":
