@@ -12,7 +12,7 @@ def format_to_json(exoplanet, lifeform, output_path = "planet_profile.json"):
     # --- Build Text Description -- #
     if exoplanet.get_habitable():
         habitability_text = "This planet is habitable and may support life"
-        environment_text = exoplanet.get_environment() if exoplanet.get_habitable() else None
+        environment_text = exoplanet.get_environment()
         life_text = (
         #    f"Lifeform: {lifeform.lifeform}\n"
             f"Size: {lifeform.get_base_size()}\n"
@@ -30,7 +30,7 @@ def format_to_json(exoplanet, lifeform, output_path = "planet_profile.json"):
         habitability_text = "This planet is not habitable."
         life_text = "No known lifeforms."
     
-    description = f"{environment_text if exoplanet.get_habitable() else None}\n\n{habitability_text}\n\n{life_text}"
+    description = f"{environment_text}\n\n{habitability_text}\n\n{life_text}"
 
 
      # --- Construct JSON dictionary --- #
