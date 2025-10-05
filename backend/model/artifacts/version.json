@@ -1,0 +1,12 @@
+{
+  "model_name": "RandomForestClassifier",
+  "n_estimators": 100,
+  "trained_on_rows": 4725,
+  "trained_on_cols": 42,
+  "timestamp_utc": "2025-10-04T22:55:43Z",
+  "python": "3.12.11",
+  "platform": "Linux-6.6.97+-x86_64-with-glibc2.35",
+  "pandas": "2.2.2",
+  "scikit_learn": "1.6.1",
+  "notes": "Targets: koi_disposition 1=candidate, 0=confirmed. One-hot on 'koi_tce_delivname' with drop_first."
+}
