@@ -210,7 +210,7 @@ export const ExoplanetScene: React.FC<ExoplanetSceneProps> = ({
     const createStarShape = () => {
       const shape = new THREE.Shape();
       const outerRadius = 0.3;
-      const innerRadius = 0.15;
+      const innerRadius = 0.25;
       const points = 5;
       
       for (let i = 0; i < points * 2; i++) {
@@ -238,7 +238,7 @@ export const ExoplanetScene: React.FC<ExoplanetSceneProps> = ({
     });
     
     const backgroundStars: THREE.Mesh[] = [];
-    for (let i = 0; i < 200; i++) {
+    for (let i = 0; i < 1200; i++) {
       const starMaterial = new THREE.MeshBasicMaterial({ 
         color: 0xffffff,
         transparent: true,
@@ -248,9 +248,9 @@ export const ExoplanetScene: React.FC<ExoplanetSceneProps> = ({
       
       // Random position
       star.position.set(
-        (Math.random() - 0.5) * 200,
-        (Math.random() - 0.5) * 200,
-        (Math.random() - 0.5) * 200
+        (Math.random() - 0.5) * 1000,
+        (Math.random() - 0.5) * 1000,
+        (Math.random() - 0.5) * 1000
       );
       
       // Random rotation
@@ -261,7 +261,7 @@ export const ExoplanetScene: React.FC<ExoplanetSceneProps> = ({
       );
       
       // Random scale
-      const scale = Math.random() * 0.5 + 0.3; // Between 0.3 and 0.8
+      const scale = Math.random() *1 + 2; // Between 0.3 and 0.8
       star.scale.setScalar(scale);
       
       scene.add(star);
