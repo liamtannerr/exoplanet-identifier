@@ -21,6 +21,19 @@ interface PlanetSystemRef {
   params: PlanetVisualizationParams;
 }
 
+function hybridOrbitDistance(
+  R: number,                     // real orbital radius
+  R0: number = 1,                // offset to prevent log(0)
+  base: number = 2,             // log base
+  Rc: number = R0 * 10,          // cutoff between linear/log
+  scale: number = 1              // your scaling factor
+): number {
+  const value =
+    R <= Rc
+      ? R * scale                        // linear near the star
+      : Rc + Math.log(scale*(R + R0)) / Math.log(base); // logarithmic far away
+  return value;
+}
 export const ExoplanetScene: React.FC<ExoplanetSceneProps> = ({
   planets,
   showPopover,
@@ -30,6 +43,9 @@ export const ExoplanetScene: React.FC<ExoplanetSceneProps> = ({
   focusedPlanet,
   onPlanetFocus
 }) => {
+  // Visual scaling constants for fine-tuning the visualization
+  const SUN_SIZE_SCALE = 8.0; // Multiplier for star visual size (higher = larger stars)
+  const ORBITAL_RADIUS_SCALE = 10.0; // Multiplier for orbital distances (higher = more spaced out)
   const mountRef = useRef<HTMLDivElement>(null);
   const sceneRef = useRef<THREE.Scene>();
   const rendererRef = useRef<THREE.WebGLRenderer>();
@@ -61,23 +77,31 @@ export const ExoplanetScene: React.FC<ExoplanetSceneProps> = ({
   const getCameraPosition = () => {
     if (planets.length === 0) {
       // Default position when no planets
-      const baseDistance = 25;
+      const baseDistance = 50; // Increased for larger scaled orbits
       const angle = 50 * (Math.PI / 180);
       return [0, baseDistance * Math.sin(angle), baseDistance * Math.cos(angle)];
     }
     
-    const distanceMultiplier = 13000; // This ensures good framing of the orbital circle
+    const distanceMultiplier = 2 // Increased for better framing with scaled orbits
     // If a planet is focused, zoom in on its orbital radius
     if (focusedPlanet) {
       const focusedParams = planets.find(p => p.kepoi_name === focusedPlanet);
       if (focusedParams) {
-        const orbitalRadius = focusedParams.planetDistance;
+        let orbitalRadius = hybridOrbitDistance(
+          focusedParams.planetDistance,
+          1,                 // R0
+          2,                // base (log10)
+          20,                // Rc (cutoff between linear/log)
+          ORBITAL_RADIUS_SCALE
+        );
+        
+        orbitalRadius = orbitalRadius + focusedParams.starDiameter / 2 * SUN_SIZE_SCALE + focusedParams.planetDiameter / 2; // 
         const viewingAngle = 50; // degrees from above
         const viewingAngleRad = (viewingAngle * Math.PI) / 180;
         console.log(orbitalRadius, viewingAngle)     
         // Simple calculation: position camera so orbital diameter fits nicely in view
         // Use a multiplier that ensures the orbital path is well-framed
-        const cameraDistance = Math.max(orbitalRadius * distanceMultiplier, 7);
+        const cameraDistance = Math.max(orbitalRadius * distanceMultiplier, 15); // Increased minimum distance
         
         // Calculate camera position at the viewing angle
         const position = [
@@ -97,10 +121,21 @@ export const ExoplanetScene: React.FC<ExoplanetSceneProps> = ({
     }
     
     // When no planet is focused, zoom out to view the largest orbital radius
-    const maxOrbitalRadius = Math.max(...planets.map(p => p.planetDistance),0);
-    const systemSize = maxOrbitalRadius * distanceMultiplier; // View the largest orbital radius with more padding
-    const baseDistance = Math.max(systemSize + 5, 7); // Ensure minimum distance for overview
-    console.log(planets.length)
+    // Account for orbital scaling when calculating camera distance
+    
+    let maxOrbitalRadius = Math.max(...planets.map(p => p.planetDistance),0);
+    console.log("unfocused maxorbital radius " + maxOrbitalRadius) 
+    const logMaxOrbitalRadius = hybridOrbitDistance(
+      maxOrbitalRadius,
+      1,                 // R0
+      2,                // base (log10)
+      20,                // Rc (cutoff between linear/log)
+      ORBITAL_RADIUS_SCALE
+    ); 
+    console.log("post process maxorbital radius " + logMaxOrbitalRadius)
+    const systemSize = logMaxOrbitalRadius * distanceMultiplier; // View the largest orbital radius with more padding
+    const baseDistance = Math.max(systemSize + 15, 0);
+    //const baseDistance = Math.max(systemSize + 15, 25); // Increased padding and minimum distance for scaled orbits
     // 50-degree angle from above
     const angle = 50 * (Math.PI / 180);
     const x = 0; // Center on the overlapping systems
@@ -125,8 +160,8 @@ export const ExoplanetScene: React.FC<ExoplanetSceneProps> = ({
   // Calculate orbital speed based on actual orbital period but scaled for visualization
   const getOrbitalSpeed = (planet: PlanetVisualizationParams) => {
     // Scale factor to make orbits visible (real periods are too slow)
-    // This makes a 365-day period complete one orbit in about 37 seconds
-    const timeScale = 100; // Higher = faster orbits
+    // Further reduced timeScale to make orbits much slower and more realistic
+    const timeScale = 2; // Reduced from 25 to make orbits much slower
     
     // Speed is inversely proportional to orbital period
     // Shorter periods = faster movement, maintaining relative speeds
@@ -323,7 +358,7 @@ export const ExoplanetScene: React.FC<ExoplanetSceneProps> = ({
         systemRef.planetMesh.position.set(x, 0, z);
         
         // Always rotate planet on its own axis
-        systemRef.planetMesh.rotation.y += 0.03;
+        //systemRef.planetMesh.rotation.y += 0.03;
         
         // Rotate the star slowly
         systemRef.starMesh.rotation.y += 0.005;
@@ -406,7 +441,7 @@ export const ExoplanetScene: React.FC<ExoplanetSceneProps> = ({
       const isFocused = focusedPlanetRef.current === params.kepoi_name;
       
       const planetMaterial = systemRef.planetMesh.material as THREE.MeshPhongMaterial;
-      const starMaterial = systemRef.starMesh.material as THREE.MeshBasicMaterial;
+      const starMaterial = systemRef.starMesh.material as THREE.MeshLambertMaterial;
       const orbitMaterial = systemRef.orbit.material as THREE.MeshBasicMaterial;
       
       if (focusedPlanetRef.current === null) {
@@ -487,31 +522,23 @@ export const ExoplanetScene: React.FC<ExoplanetSceneProps> = ({
     // Check if we already have defaults for this planet
     if (planetDefaultsRef.current.has(planet.kepoi_name)) {
       const existing = planetDefaultsRef.current.get(planet.kepoi_name)!;
-      // Update with current planet data but keep the generated properties
-      // IMPORTANT: Always preserve color and temperature data from API
+      // Update with current planet data but preserve existing orbital data to prevent re-randomization
       return {
         ...planet, // Keep all API data including colors and temperatures
-        planetDistance: existing.planetDistance,
-        planetDiameter: existing.planetDiameter,
-        planetOrbitalPeriod: existing.planetOrbitalPeriod
+        // Use API data for orbital parameters - don't override with random values
+        planetDistance: planet.planetDistance, // Use the properly scaled distance from API
+        planetDiameter: planet.planetDiameter, // Use API data
+        planetOrbitalPeriod: planet.planetOrbitalPeriod // Use API data
       };
     }
 
-    // Generate new defaults for this planet
-    const baseDistances = [3, 5, 8, 12, 16, 20]; // Different orbital distances
-    const baseSizes = [0.5, 0.8, 1.0, 1.2, 1.5, 2.0]; // Different planet sizes
-    const basePeriods = [88, 225, 365, 687, 1083, 1686]; // Different orbital periods (days)
-    
-    // Use a simple hash of the planet name to ensure consistent randomization
-    const hash = planet.kepoi_name.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
-    const planetIndex = hash % 6;
-    
+    // For new planets, use the actual API data - don't generate random values
+    // This ensures accurate orbital pathway visualization
     const planetDefaults = {
-      ...planet, // Keep all API data including colors and temperatures
-      planetDistance: baseDistances[planetIndex] + ((hash % 100) - 50) * 0.04, // Consistent variation
-      planetDiameter: baseSizes[planetIndex] + ((hash % 40) - 20) * 0.01,
-      planetOrbitalPeriod: basePeriods[planetIndex] + ((hash % 200) - 100)
+      ...planet, // Keep all API data including the properly scaled orbital parameters
     };
+
+    console.log(`Planet ${planet.kepoi_name} using orbital distance: ${planet.planetDistance}`);
 
     // Store the defaults for future use
     planetDefaultsRef.current.set(planet.kepoi_name, planetDefaults);
@@ -545,6 +572,9 @@ export const ExoplanetScene: React.FC<ExoplanetSceneProps> = ({
           onPlanetFocus(null);
         }
         
+        // Clear planet defaults cache for this planet
+        planetDefaultsRef.current.delete(systemRef.params.kepoi_name);
+        
         // Dispose of resources
         systemRef.planetMesh.geometry.dispose();
         (systemRef.planetMesh.material as THREE.Material).dispose();
@@ -574,10 +604,13 @@ export const ExoplanetScene: React.FC<ExoplanetSceneProps> = ({
         const systemGroup = new THREE.Group();
         systemGroup.position.set(systemPosition.x, systemPosition.y, systemPosition.z);
         
-        // Create star (scaled to actual size from data)
-        const starRadius = planetProps.starDiameter * 0.5; // Convert diameter to radius
+        // Base scale for consistent sizing across all objects
+        const baseScale = 0.8;
+        
+        // Create star with Earth/Sun ratio scaling and visual scaling constant
+        const starRadius = planetProps.starDiameter * baseScale * 2 * SUN_SIZE_SCALE; // Stars scaled for visibility
         const starGeometry = new THREE.SphereGeometry(starRadius, 32, 32);
-        const starMaterial = new THREE.MeshBasicMaterial({ 
+        const starMaterial = new THREE.MeshLambertMaterial({ 
           color: planetProps.starColor,
           emissive: planetProps.starColor,
           emissiveIntensity: 0.3,
@@ -587,19 +620,36 @@ export const ExoplanetScene: React.FC<ExoplanetSceneProps> = ({
         const star = new THREE.Mesh(starGeometry, starMaterial);
         star.position.set(0, 0, 0); // Star at center of system
         systemGroup.add(star);
+
+        // Create planet with size clamping and consistent scaling
+        // Clamp planet diameter to maximum of 4 Earth radii for better visualization
+        const clampedPlanetDiameter = Math.min(planetProps.planetDiameter, 4.0);
+        const planetRadius = clampedPlanetDiameter * baseScale; // Use baseScale for consistency
         
-        // Create point light for this star
-        const pointLight = new THREE.PointLight(planetProps.starColor, 2, planetProps.planetDistance * 3);
+        // Calculate safe orbital distance (minimum = planet radius + star radius to prevent overlap)
+        //const baseOrbitalDistance = Math.log(planetProps.planetDistance) * ORBITAL_RADIUS_SCALE;
+        const baseOrbitalDistance = hybridOrbitDistance(
+          planetProps.planetDistance,
+          1,                 // R0
+          2,                // base (log10)
+          20,                // Rc (cutoff between linear/log)
+          ORBITAL_RADIUS_SCALE
+        );
+        console.log("planet geometry" +baseOrbitalDistance)
+        const minimumDistance = (starRadius + planetRadius) * 1.2; // 20% padding to ensure clear separation
+        const safeOrbitalDistance = Math.max(baseOrbitalDistance, minimumDistance);
+        
+        // Create point light for this star (now that safeOrbitalDistance is calculated)
+        const pointLight = new THREE.PointLight(planetProps.starColor, 2, safeOrbitalDistance * 3);
         pointLight.position.set(0, 0, 0);
         pointLight.castShadow = true;
         pointLight.shadow.mapSize.width = 1024;
         pointLight.shadow.mapSize.height = 1024;
         pointLight.shadow.camera.near = 0.1;
-        pointLight.shadow.camera.far = planetProps.planetDistance * 2;
+        pointLight.shadow.camera.far = safeOrbitalDistance * 2;
         systemGroup.add(pointLight);
-
-        // Create planet
-        const planetGeometry = new THREE.SphereGeometry(planetProps.planetDiameter / 2, 32, 32);
+        
+        const planetGeometry = new THREE.SphereGeometry(planetRadius, 32, 32);
         const planetMaterial = new THREE.MeshPhongMaterial({ 
           color: planetProps.planetColor,
           shininess: 60,
@@ -613,10 +663,10 @@ export const ExoplanetScene: React.FC<ExoplanetSceneProps> = ({
         planet.userData = { planetParams: planetProps };
         systemGroup.add(planet);
 
-        // Create orbit ring
+        // Create orbit ring using the safe orbital distance
         const orbitGeometry = new THREE.RingGeometry(
-          planetProps.planetDistance - 0.02, 
-          planetProps.planetDistance + 0.02, 
+          safeOrbitalDistance - 0.02, 
+          safeOrbitalDistance + 0.02, 
           128
         );
         const orbitMaterial = new THREE.MeshBasicMaterial({ 
@@ -633,12 +683,18 @@ export const ExoplanetScene: React.FC<ExoplanetSceneProps> = ({
         
         scene.add(systemGroup);
 
+        // Store the system with the adjusted orbital distance for animation
+        const adjustedPlanetProps = {
+          ...planetProps,
+          planetDistance: safeOrbitalDistance // Use the safe distance for orbital calculations
+        };
+        
         planetSystemsRef.current.push({
           planetMesh: planet,
           starMesh: star,
           orbit: orbit,
           systemGroup: systemGroup,
-          params: planetProps
+          params: adjustedPlanetProps
         });
         
         // Update materials for the newly added planet
