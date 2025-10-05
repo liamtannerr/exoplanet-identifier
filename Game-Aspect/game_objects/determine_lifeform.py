@@ -3,14 +3,54 @@ import math
 
 class Lifeform:
 
-    def __init__(self, csv_row, base_size=2.0, environment="terrestrial"):
+    size: float
+    color:str
+    communication: str
+    diet: str
+    environment: str
+
+    def __init__(self, csv_row, size, color, communication, diet, environment, base_size=2.0 ):
         self.row = csv_row
         self._base_size = base_size
         self._environment = environment
+        self._size = size
+        self._color = color
+        self._communication = communication
+        self._diet = diet
 
     # --- Getters and Setters ---
     def get_base_size(self):
         return self._base_size
+    
+    def get_environment(self):
+        return self._environment
+    
+    def get_size(self):
+        return self._size
+
+    def get_color(self):
+        return self._color
+    
+    def get_communication(self):
+        return self._communication
+    
+    def get_diet(self):
+        return self.diet
+    
+    def set_size(self, size):
+        self.size = size
+
+    def set_environment(self, environment):
+        self.environment = environment
+
+    def set_color(self, color):
+        self.color = color
+
+    def set_communication(self, communication):
+        self.communication = communication
+
+    def set_diet(self, diet):
+        self.diet = diet
 
     def set_base_size(self, value):
         if value > 0:
@@ -18,11 +58,6 @@ class Lifeform:
         else:
             raise ValueError("Base size must be positive.")
 
-    def get_environment(self):
-        return self._environment
-
-    def set_environment(self, value):
-        self._environment = value
 
     # --- Lifeform Attribute Methods ---
     def get_size(self):
@@ -74,23 +109,7 @@ class Lifeform:
         g = int(min(max((1 / (insolation + 1)) * 200, 0), 255))
         b = int(min(max((insolation / 2) * 100, 0), 255))
 
-        return (r, g, b)
-
-    def get_radiation_shielding(self):
-        """
-        Estimate radiation shielding needed in Sieverts equivalent protection.
-        """
-        row = self.row
-        insolation = row.get("koi_insol", 1.0)
-        star_temp = row.get("koi_steff", 5500)
-
-        if pd.isna(insolation): insolation = 1.0
-        if pd.isna(star_temp): star_temp = 5500
-
-        # Approx radiation exposure model
-        radiation_msv = (insolation * (star_temp / 5800)) * 0.5
-        sieverts = radiation_msv / 1000  # convert mSv to Sv
-        return round(sieverts, 6)
+        return str((r, g, b))
 
     def get_communication_method(self):
         """
@@ -133,7 +152,6 @@ class Lifeform:
         return (f"Lifeform on {planet_name}:\n"
                 f"  Size: {self.get_size():.2f} m\n"
                 f"  Color (RGB): {self.get_color()}\n"
-                f"  Radiation Shielding: {self.get_radiation_shielding()} Sv\n"
                 f"  Communication: {self.get_communication_method()}\n"
                 f"  Diet: {self.get_diet()}")
 
@@ -141,5 +159,5 @@ class Lifeform:
 df = pd.read_csv("cumulative_2025.10.04_13.06.32.csv")
 first_planet = df.iloc[0]
 
-creature = Lifeform(first_planet, base_size=2.0, environment="aquatic")
+creature = Lifeform(first_planet, 0, str((0,0,0)), "None", "None", 0)
 print(creature)
