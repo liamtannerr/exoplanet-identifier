@@ -62,5 +62,6 @@ export function temperatureToPlanetColor(temperature: number): string {
 
 // Convert orbital radius from solar radii to AU (1 AU ≈ 215 solar radii)
 export function solarRadiiToAU(solarRadii: number): number {
-  return solarRadii / 215;
+  return solarRadii;
+  //return solarRadii / 215;
 }

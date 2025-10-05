@@ -24,7 +24,8 @@ export default function App() {
 
     return selectedPlanets.map(planet => ({
       planetOrbitalPeriod: planet.orbital_period,
-      planetDistance: solarRadiiToAU(planet.orbital_radius),
+      planetDistance: planet.orbital_radius,
+      //planetDistance: solarRadiiToAU(planet.orbital_radius),
       planetDiameter: planet.planet_radius,
       planetColor: temperatureToPlanetColor(planet.temperature),
       starDiameter: planet.stellar_radius,
