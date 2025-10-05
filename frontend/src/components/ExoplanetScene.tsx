@@ -793,18 +793,134 @@ export const ExoplanetScene: React.FC<ExoplanetSceneProps> = ({
           >
           </button>
         </PopoverTrigger>
-        <PopoverContent className="w-80 bg-gray-900 border-gray-700 mr-4">
-          <div className="space-y-2">
+        <PopoverContent className="w-96 bg-gray-900 border-gray-700 mr-4 max-h-[80vh] overflow-y-auto">
+          <div className="space-y-3">
             {selectedPlanetInfo ? (
               <>
-                <h3 className="text-white">{selectedPlanetInfo.display_name}</h3>
-                <div className="text-sm text-gray-400 space-y-1">
-                  <p>KOI ID: {selectedPlanetInfo.kepoi_name}</p>
-                  <p>Orbital Distance: {selectedPlanetInfo.planetDistance.toFixed(3)} AU</p>
-                  <p>Orbital Period: {selectedPlanetInfo.planetOrbitalPeriod.toFixed(1)} days</p>
-                  <p>Planet Radius: {selectedPlanetInfo.planetDiameter.toFixed(2)} R⊕</p>
-                  <p>Stellar Radius: {selectedPlanetInfo.starDiameter.toFixed(2)} R☉</p>
-                  <p className="text-blue-400 text-xs">🌍 Orbital speed proportional to actual period</p>
+                <div className="border-b border-gray-700 pb-2">
+                  <h3 className="text-white">{selectedPlanetInfo.display_name}</h3>
+                  <p className="text-xs text-gray-500">KOI ID: {selectedPlanetInfo.kepoi_name}</p>
+                </div>
+
+                {/* Exoplanet Classification - only show if data is available */}
+                {(selectedPlanetInfo.is_exoplanet !== undefined || selectedPlanetInfo.is_exoplanet_confidence !== undefined) && (
+                  <div className="bg-gray-800 rounded-lg p-3">
+                    <h4 className="text-white text-sm mb-2">Classification</h4>
+                    <div className="space-y-1 text-xs">
+                      {selectedPlanetInfo.is_exoplanet !== undefined && (
+                        <div className="flex justify-between">
+                          <span className="text-gray-400">Exoplanet Status:</span>
+                          <span className={selectedPlanetInfo.is_exoplanet ? "text-green-400" : "text-red-400"}>
+                            {selectedPlanetInfo.is_exoplanet ? "✓ Confirmed" : "✗ Not Confirmed"}
+                          </span>
+                        </div>
+                      )}
+                      {selectedPlanetInfo.is_exoplanet_confidence !== undefined && (
+                        <div className="flex justify-between">
+                          <span className="text-gray-400">Confidence:</span>
+                          <span className="text-white">
+                            {(selectedPlanetInfo.is_exoplanet_confidence * 100).toFixed(1)}%
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {/* Physical Properties */}
+                <div className="bg-gray-800 rounded-lg p-3">
+                  <h4 className="text-white text-sm mb-2">Physical Properties</h4>
+                  <div className="space-y-1 text-xs">
+                    <div className="flex justify-between">
+                      <span className="text-gray-400">Planet Radius:</span>
+                      <span className="text-white">{selectedPlanetInfo.planetDiameter.toFixed(2)} R⊕</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-400">Planet Temperature:</span>
+                      <span className="text-white">{selectedPlanetInfo.temperature.toFixed(0)} K</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Orbital Properties */}
+                <div className="bg-gray-800 rounded-lg p-3">
+                  <h4 className="text-white text-sm mb-2">Orbital Properties</h4>
+                  <div className="space-y-1 text-xs">
+                    <div className="flex justify-between">
+                      <span className="text-gray-400">Orbital Distance:</span>
+                      <span className="text-white">{selectedPlanetInfo.planetDistance.toFixed(3)} AU</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-400">Orbital Period:</span>
+                      <span className="text-white">{selectedPlanetInfo.planetOrbitalPeriod.toFixed(1)} days</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Stellar Properties */}
+                <div className="bg-gray-800 rounded-lg p-3">
+                  <h4 className="text-white text-sm mb-2">Host Star</h4>
+                  <div className="space-y-1 text-xs">
+                    <div className="flex justify-between">
+                      <span className="text-gray-400">Stellar Radius:</span>
+                      <span className="text-white">{selectedPlanetInfo.starDiameter.toFixed(2)} R☉</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-400">Stellar Temperature:</span>
+                      <span className="text-white">{selectedPlanetInfo.stellarTemperature.toFixed(0)} K</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Hypothetical Life Properties - only show if data is available */}
+                {(selectedPlanetInfo.environment || selectedPlanetInfo.size || selectedPlanetInfo.color || selectedPlanetInfo.communication || selectedPlanetInfo.diet) && (
+                  <div className="bg-gray-800 rounded-lg p-3">
+                    <h4 className="text-white text-sm mb-2">Hypothetical Life</h4>
+                    <div className="space-y-1 text-xs">
+                      {selectedPlanetInfo.environment && (
+                        <div className="flex justify-between">
+                          <span className="text-gray-400">Environment:</span>
+                          <span className="text-white capitalize">{selectedPlanetInfo.environment}</span>
+                        </div>
+                      )}
+                      {selectedPlanetInfo.size && selectedPlanetInfo.size.length > 0 && (
+                        <div className="flex justify-between">
+                          <span className="text-gray-400">Size Category:</span>
+                          <span className="text-white">
+                            {Array.from(selectedPlanetInfo.size).join(', ')}
+                          </span>
+                        </div>
+                      )}
+                      {selectedPlanetInfo.color && selectedPlanetInfo.color !== 'unknown' && (
+                        <div className="flex justify-between">
+                          <span className="text-gray-400">Color:</span>
+                          <div className="flex items-center gap-2">
+                            <div 
+                              className="w-3 h-3 rounded-full border border-gray-500" 
+                              style={{ backgroundColor: selectedPlanetInfo.color }}
+                            />
+                            <span className="text-white capitalize">{selectedPlanetInfo.color}</span>
+                          </div>
+                        </div>
+                      )}
+                      {selectedPlanetInfo.communication && selectedPlanetInfo.communication !== 'unknown' && (
+                        <div className="flex justify-between">
+                          <span className="text-gray-400">Communication:</span>
+                          <span className="text-white capitalize">{selectedPlanetInfo.communication}</span>
+                        </div>
+                      )}
+                      {selectedPlanetInfo.diet && selectedPlanetInfo.diet !== 'unknown' && (
+                        <div className="flex justify-between">
+                          <span className="text-gray-400">Diet:</span>
+                          <span className="text-white capitalize">{selectedPlanetInfo.diet}</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                <div className="text-blue-400 text-xs text-center">
+                  🌍 Orbital speed proportional to actual period
                 </div>
               </>
             ) : (

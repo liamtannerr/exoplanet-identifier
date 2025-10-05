@@ -32,7 +32,16 @@ export default function App() {
       starColor: temperatureToStarColor(planet.stellar_temperature || 5778), // Default to sun temperature if not provided
       kepoi_name: planet.kepoi_name,
       display_name: getDisplayName(planet),
-      stellarTemperature: planet.stellar_temperature || 5778
+      stellarTemperature: planet.stellar_temperature || 5778,
+      // Additional fields from API (with safety checks)
+      is_exoplanet: planet.is_exoplanet ?? false,
+      is_exoplanet_confidence: planet.is_exoplanet_confidence ?? 0,
+      environment: planet.environment ?? 'unknown',
+      size: planet.size ?? new Float32Array(),
+      color: planet.color ?? 'unknown',
+      communication: planet.communication ?? 'unknown',
+      diet: planet.diet ?? 'unknown',
+      temperature: planet.temperature
     }));
   };
 
