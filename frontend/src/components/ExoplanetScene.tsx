@@ -784,27 +784,16 @@ export const ExoplanetScene: React.FC<ExoplanetSceneProps> = ({
     <div className="relative w-full h-full">
       <div ref={mountRef} className="w-full h-full" />
       
-      {/* Clear focus button */}
-      {focusedPlanet && (
-        <button
-          className="absolute top-4 left-4 px-4 py-2 bg-blue-600/80 text-white rounded-lg hover:bg-blue-700/80 transition-colors"
-          onClick={() => onPlanetFocus(null)}
-        >
-          Show All Systems
-        </button>
-      )}
-      
       {/* Floating planet info popover */}
-      <Popover open={showPopover} onOpenChange={setShowPopover}>
+      <Popover open={showPopover && selectedPlanetInfo} onOpenChange={setShowPopover}>
         <PopoverTrigger asChild>
           <button
-            className="absolute top-4 right-4 px-4 py-2 bg-black/50 text-white rounded-lg hover:bg-black/70 transition-colors"
+            className="absolute top-4 right-4"
             onClick={handleInfoClick}
           >
-            Planet Info
           </button>
         </PopoverTrigger>
-        <PopoverContent className="w-80 bg-gray-900 border-gray-700">
+        <PopoverContent className="w-80 bg-gray-900 border-gray-700 mr-4">
           <div className="space-y-2">
             {selectedPlanetInfo ? (
               <>

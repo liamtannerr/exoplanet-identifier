@@ -45,6 +45,12 @@ export default function App() {
   const visualizationParams = getVisualizationParams();
 
   const handlePlanetFocus = (kepoi_name: string | null) => {
+    if (focusedPlanet === kepoi_name) {
+      setSelectedKepoiName(null);
+      setShowPopover(false);
+      setFocusedPlanet(null);
+      return;
+    }
     setSelectedKepoiName(kepoi_name);
     setShowPopover(true);
     setFocusedPlanet(kepoi_name);

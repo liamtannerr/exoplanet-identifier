@@ -487,6 +487,10 @@
     margin-right: calc(var(--spacing) * 1);
   }
 
+  .mr-4 {
+    margin-right: calc(var(--spacing) * 4);
+  }
+
   .mb-2 {
     margin-bottom: calc(var(--spacing) * 2);
   }
@@ -1307,6 +1311,10 @@
 
   .focus-visible\:border-ring:focus-visible {
     border-color: var(--ring);
+  }
+
+  .hidden {
+    display: none;
   }
 
   .focus-visible\:ring-\[3px\]:focus-visible {
