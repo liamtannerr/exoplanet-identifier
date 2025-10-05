@@ -697,7 +697,7 @@ export const ExoplanetScene: React.FC<ExoplanetSceneProps> = ({
               <>
                 <h3 className="text-white">Planetary Systems</h3>
                 <div className="p-3 rounded-lg bg-gray-800 border border-gray-600">
-                  <p className="text-gray-300">
+                  <p className="text-gray-300 text-sm">
                     {planets.length > 0 
                       ? `Currently displaying ${planets.length} planetary system${planets.length > 1 ? 's' : ''}. Click on a planet to focus on its system.`
                       : 'No planets currently selected. Choose planets from the database to visualize their orbital systems.'

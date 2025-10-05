@@ -194,9 +194,9 @@ export const PlanetSelector: React.FC<PlanetSelectorProps> = ({
   }
 
   return (
-    <div className="h-full flex flex-col">
+    <div className="h-full w-full flex flex-col">
       <div className="mb-4">
-        <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center justify-between mb-4 flex-row gap-1">
           <h2 className="text-white">Exoplanet Database</h2>
           <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
             <DialogTrigger asChild>

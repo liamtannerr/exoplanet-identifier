@@ -10,7 +10,7 @@ export default function App() {
   
   // Shared popover state for planet details
   const [showPopover, setShowPopover] = useState(false);
-  const [selectedPlanetInfo, setSelectedPlanetInfo] = useState<PlanetVisualizationParams | null>(null);
+  const [selectedKepoiName, setSelectedKepoiName] = useState<string | null>(null);
   
   // Focus state for individual planetary systems
   const [focusedPlanet, setFocusedPlanet] = useState<string | null>(null);
@@ -35,32 +35,24 @@ export default function App() {
     }));
   };
 
-  const visualizationParams = getVisualizationParams();
-
   // Handle planet info selection from either source
   const handlePlanetInfoSelect = (planetInfo: PlanetVisualizationParams | null) => {
-    setSelectedPlanetInfo(planetInfo);
+    setSelectedKepoiName(planetInfo?.kepoi_name);
     setShowPopover(!!planetInfo);
   };
 
-  // Handle planet focus (from list or 3D scene)
+  const visualizationParams = getVisualizationParams();
+
   const handlePlanetFocus = (kepoi_name: string | null) => {
+    setSelectedKepoiName(kepoi_name);
+    setShowPopover(true);
     setFocusedPlanet(kepoi_name);
-    
-    // Also update the planet info if focusing
-    if (kepoi_name) {
-      const planetInfo = visualizationParams.find(p => p.kepoi_name === kepoi_name);
-      if (planetInfo) {
-        setSelectedPlanetInfo(planetInfo);
-        setShowPopover(true);
-      }
-    }
   };
 
   return (
     <div className="w-full h-screen bg-gray-900 flex dark">
       {/* Exoplanet Database - Full Left Panel */}
-      <div className="w-80 h-full bg-gray-900 border-r border-gray-700 p-4">
+      <div className="w-100 h-full bg-gray-900 border-r border-gray-700 p-4">
         <PlanetSelector
           selectedPlanets={selectedPlanets}
           onPlanetsChange={setSelectedPlanets}
@@ -76,7 +68,7 @@ export default function App() {
           planets={visualizationParams}
           showPopover={showPopover}
           setShowPopover={setShowPopover}
-          selectedPlanetInfo={selectedPlanetInfo}
+          selectedPlanetInfo={visualizationParams.find(p => p.kepoi_name === selectedKepoiName) || null}
           onPlanetInfoSelect={handlePlanetInfoSelect}
           focusedPlanet={focusedPlanet}
           onPlanetFocus={handlePlanetFocus}
