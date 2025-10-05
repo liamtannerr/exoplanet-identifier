@@ -2,6 +2,7 @@ import React, { useRef, useEffect, useState } from 'react';
 import * as THREE from 'three';
 import { Popover, PopoverContent, PopoverTrigger } from './ui/popover';
 import { PlanetVisualizationParams } from '../types/exoplanet';
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 
 interface ExoplanetSceneProps {
   planets: PlanetVisualizationParams[];
@@ -13,12 +14,15 @@ interface ExoplanetSceneProps {
   onPlanetFocus: (kepoi_name: string | null) => void;
 }
 
+const loader = new GLTFLoader();
+
 interface PlanetSystemRef {
   planetMesh: THREE.Mesh;
   starMesh: THREE.Mesh;
   orbit: THREE.Mesh;
   systemGroup: THREE.Group; // Group containing the entire planetary system
   params: PlanetVisualizationParams;
+  starRadius: number;
 }
 
 function hybridOrbitDistance(
@@ -72,6 +76,8 @@ export const ExoplanetScene: React.FC<ExoplanetSceneProps> = ({
   
   // Store persistent planet defaults to prevent re-randomization
   const planetDefaultsRef = useRef<Map<string, PlanetVisualizationParams>>(new Map());
+
+  const [starGeometry, setStarGeometry] = useState<THREE.BufferGeometry | null>(null);
 
   // Calculate camera position to frame all planetary systems
   const getCameraPosition = () => {
@@ -173,6 +179,38 @@ export const ExoplanetScene: React.FC<ExoplanetSceneProps> = ({
 
     // Scene setup with moderate background for visibility
     const scene = new THREE.Scene();
+
+    loader.load(
+      '/models/sphere.glb', 
+      (gltf) => {
+        let geometry = null;
+        gltf.scene.traverse(function (child) {
+          if (child instanceof THREE.Mesh && geometry === null) {
+            geometry = child.geometry;
+          }
+        });
+
+        if (geometry) {
+          geometry.center();
+
+          geometry.computeBoundingSphere();
+          if (geometry.boundingSphere) {
+            const radius = geometry.boundingSphere.radius;
+            geometry.scale(1 / radius, 1 / radius, 1 / radius);
+          }
+          
+          setStarGeometry(geometry);
+          console.log('Model loaded and geometry processed successfully!');
+        } else {
+          console.error('Could not find a mesh in the loaded GLB file.');
+        }
+      },
+      undefined, 
+      (error) => {
+        console.error('An error happened loading the GLB model:', error);
+      }
+    );
+
     scene.background = new THREE.Color(0x0a0a0a); // Lighter background for better visibility
     sceneRef.current = scene;
 
@@ -232,7 +270,7 @@ export const ExoplanetScene: React.FC<ExoplanetSceneProps> = ({
 
     // Stars background with 5-pointed star shapes
     const starShape = createStarShape();
-    const starGeometry = new THREE.ExtrudeGeometry(starShape, {
+    const backgroundStarGeometry = new THREE.ExtrudeGeometry(starShape, {
       depth: 0.02,
       bevelEnabled: false
     });
@@ -244,7 +282,7 @@ export const ExoplanetScene: React.FC<ExoplanetSceneProps> = ({
         transparent: true,
         opacity: Math.random() * 0.8 + 0.2 // Random opacity between 0.2 and 1.0
       });
-      const star = new THREE.Mesh(starGeometry, starMaterial);
+      const star = new THREE.Mesh(backgroundStarGeometry, starMaterial);
       
       // Random position
       star.position.set(
@@ -364,10 +402,10 @@ export const ExoplanetScene: React.FC<ExoplanetSceneProps> = ({
         systemRef.starMesh.rotation.y += 0.005;
         
         // Pulsing effect for star
-        const pulseSpeed = 0.02;
-        const pulseFactor = 1.0 + 0.05 * Math.sin(timeRef.current * pulseSpeed + index);
-        systemRef.starMesh.scale.setScalar(pulseFactor);
-        
+        const pulseSpeed = 3;
+        const pulseFactor = 1.0 + 0.10 * Math.sin(timeRef.current * pulseSpeed);
+        systemRef.starMesh.scale.setScalar(pulseFactor * systemRef.starRadius);
+
         // Check if we need to update materials (only when focus state changes)
         if (lastFocusStateRef.current !== focusedPlanetRef.current) {
           updateSystemMaterials();
@@ -547,7 +585,7 @@ export const ExoplanetScene: React.FC<ExoplanetSceneProps> = ({
 
   // Incremental planetary system updates
   useEffect(() => {
-    if (!sceneRef.current) return;
+    if (!sceneRef.current || !starGeometry) return;
     
     const scene = sceneRef.current;
     const currentPlanetIds = new Set(planets.map(p => p.kepoi_name));
@@ -609,7 +647,6 @@ export const ExoplanetScene: React.FC<ExoplanetSceneProps> = ({
         
         // Create star with Earth/Sun ratio scaling and visual scaling constant
         const starRadius = planetProps.starDiameter * baseScale * 2 * SUN_SIZE_SCALE; // Stars scaled for visibility
-        const starGeometry = new THREE.SphereGeometry(starRadius, 32, 32);
         const starMaterial = new THREE.MeshLambertMaterial({ 
           color: planetProps.starColor,
           emissive: planetProps.starColor,
@@ -619,6 +656,7 @@ export const ExoplanetScene: React.FC<ExoplanetSceneProps> = ({
         });
         const star = new THREE.Mesh(starGeometry, starMaterial);
         star.position.set(0, 0, 0); // Star at center of system
+        star.scale.setScalar(starRadius);
         systemGroup.add(star);
 
         // Create planet with size clamping and consistent scaling
@@ -694,7 +732,8 @@ export const ExoplanetScene: React.FC<ExoplanetSceneProps> = ({
           starMesh: star,
           orbit: orbit,
           systemGroup: systemGroup,
-          params: adjustedPlanetProps
+          params: adjustedPlanetProps,
+          starRadius: starRadius,
         });
         
         // Update materials for the newly added planet
@@ -729,7 +768,7 @@ export const ExoplanetScene: React.FC<ExoplanetSceneProps> = ({
       }
     }
 
-  }, [planets, focusedPlanet]);
+  }, [planets, focusedPlanet, starGeometry]);
 
   const handleInfoClick = () => {
     if (showPopover) {
