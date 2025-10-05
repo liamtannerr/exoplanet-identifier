@@ -69,37 +69,19 @@ def predict_row(
     if not isinstance(row, dict):
         raise TypeError("row must be a dict of raw input fields")
 
-    # Your preprocessing function fills missing features with training means and scales the row
+    # The preprocessing function fills missing features with training means and scales the row
     X_scaled = preprocess(user_input=row, mean_values=mean_values, scaler=scaler)  # shape (1, n_features)
 
     # Predict probability for class=1 (CANDIDATE)
     proba1 = float(model.predict_proba(X_scaled)[0, idx1])
 
     # Boolean decision and confidence in the predicted class
-    is_candidate = proba1 >= threshold
-    confidence = proba1 if is_candidate else 1.0 - proba1
+    is_confirmed = proba1 >= threshold
+    confidence = proba1 if is_confirmed else 1.0 - proba1
 
     return {
-        "is_candidate": bool(is_candidate),
+        "is_confirmned": bool(is_confirmed),
         "confidence": confidence,
-        "prob_candidate": proba1,
-        "threshold": threshold,
     }
-
-
-if __name__ == "__main__":
-    import json
-    from pathlib import Path
-
-    # artifacts are ../artifacts relative to this file
-    artifacts_dir = (Path(__file__).resolve().parent / ".." / "artifacts").resolve()
-
-    # use the saved sample input
-    sample = json.loads((artifacts_dir / "sample_input.json").read_text())
-
-    # call your function
-    from predict_one import predict_row  # safe even in same file
-    out = predict_row(sample, artifacts_dir=artifacts_dir, threshold=0.5)
-    print(out)
 
 
