@@ -703,15 +703,15 @@ export const ExoplanetScene: React.FC<ExoplanetSceneProps> = ({
 
         // Create orbit ring using the safe orbital distance
         const orbitGeometry = new THREE.RingGeometry(
-          safeOrbitalDistance - 0.02, 
-          safeOrbitalDistance + 0.02, 
+          safeOrbitalDistance - 0.2,
+          safeOrbitalDistance + 0.2,
           128
         );
         const orbitMaterial = new THREE.MeshBasicMaterial({ 
-          color: planetProps.planetColor,
+          color: "white",
           side: THREE.DoubleSide,
           transparent: true,
-          opacity: 0.2
+          opacity: 0.1
         });
         const orbit = new THREE.Mesh(orbitGeometry, orbitMaterial);
         orbit.rotation.x = Math.PI / 2;
