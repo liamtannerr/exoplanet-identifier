@@ -6,7 +6,7 @@ import uvicorn
 import pydantic
 import os
 
-from model.runtime.predict_one import predict_row
+from backend.model.runtime.predict_one import predict_row
 
 CSV_FILE_NAME = f"{os.path.dirname(os.path.abspath(__file__))}/data/koi.csv"
 
