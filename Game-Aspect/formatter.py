@@ -10,25 +10,27 @@ def format_to_json(exoplanet, lifeform, output_path = "planet_profile.json"):
     """
 
     # --- Build Text Description -- #
-    if exoplanet.habitable:
+    if exoplanet.get_habitable():
         habitability_text = "This planet is habitable and may support life"
+        environment_text = exoplanet.get_environment() if exoplanet.get_habitable() else None
         life_text = (
-            f"Lifeform: {lifeform.lifeform}\n"
-            f"Size: {lifeform.size}\n"
-            f"Strength: {lifeform.strength}\n"
-            f"Coloration: {lifeform.coloration}\n"
-            f"Migration pattern: {lifeform.migration}\n"
-            f"Radiation shielding: {'Yes' if lifeform.radiationSheilding else 'No'}\n"
-            f"Breathing method: {lifeform.breathingMethod}\n"
-            f"Locomotion: {lifeform.locomotion}\n"
-            f"Communication method: {lifeform.communicationMethod}\n"
-            f"Diet: {lifeform.diet}"
+        #    f"Lifeform: {lifeform.lifeform}\n"
+            f"Size: {lifeform.get_base_size()}\n"
+        #    f"Strength: {lifeform.strength}\n"
+            f"Coloration: {lifeform.get_color()}\n"
+        #    f"Migration pattern: {lifeform.migration}\n"
+        #    f"Radiation shielding: {'Yes' if lifeform.radiationSheilding else 'No'}\n"
+        #    f"Breathing method: {lifeform.breathingMethod}\n"
+        #    f"Locomotion: {lifeform.locomotion}\n"
+            f"Environment: {lifeform.get_environment()}"
+            f"Communication method: {lifeform.get_communication_method()}\n"
+            f"Diet: {lifeform.get_diet()}"
         )
     else:
         habitability_text = "This planet is not habitable."
         life_text = "No known lifeforms."
     
-    description = f"{habitability_text}\n\n{life_text}"
+    description = f"{environment_text if exoplanet.get_habitable() else None}\n\n{habitability_text}\n\n{life_text}"
 
 
      # --- Construct JSON dictionary --- #
@@ -40,19 +42,21 @@ def format_to_json(exoplanet, lifeform, output_path = "planet_profile.json"):
         #},
         "parameters": {
             "exoplanet": {
-                "habitable": exoplanet.habitable
+                "habitable": exoplanet.get_habitable(),
+                "environment": exoplanet.get_environment()
             },
             "lifeform": {
-                "lifeform": lifeform.lifeform if exoplanet.habitable else None,
-                "size": lifeform.size if exoplanet.habitable else None,
-                "strength": lifeform.strength if exoplanet.habitable else None,
-                "coloration": lifeform.coloration if exoplanet.habitable else None,
-                "migration": lifeform.migration if exoplanet.habitable else None,
-                "radiationSheilding": lifeform.radiationSheilding if exoplanet.habitable else None,
-                "breathingMethod": lifeform.breathingMethod if exoplanet.habitable else None,
-                "locomotion": lifeform.locomotion if exoplanet.habitable else None,
-                "communicationMethod": lifeform.communicationMethod if exoplanet.habitable else None,
-                "diet": lifeform.diet if exoplanet.habitable else None
+                #"lifeform": lifeform.lifeform if exoplanet.habitable else None,
+                "size": lifeform.get_base_size() if exoplanet.get_habitable() else None,
+                #"strength": lifeform.strength if exoplanet.habitable else None,
+                "coloration": lifeform.get_color() if exoplanet.get_habitable() else None,
+                #"migration": lifeform.migration if exoplanet.habitable else None,
+                #"radiationSheilding": lifeform.radiationSheilding if exoplanet.habitable else None,
+                #"breathingMethod": lifeform.breathingMethod if exoplanet.habitable else None,
+                #"locomotion": lifeform.locomotion if exoplanet.habitable else None,
+                "environment": lifeform.get_environment() if exoplanet.get_habitable() else None,
+                "communicationMethod": lifeform.get_communication_method() if exoplanet.get_habitable() else None,
+                "diet": lifeform.get_diet() if exoplanet.get_habitable() else None
             }
         }
     }

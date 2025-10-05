@@ -1,36 +1,37 @@
 import math
 import pandas as pd
+from formatter import format_to_json
 
 # Creates planet object based on passed in .csv information
 
-class Exoplanet:
-    habitable: bool
-    size: float
-    environment: str
+# class Exoplanet:
+#     habitable: bool
+#     size: float
+#     environment: str
 
 
-    def __init__(self, habitable: bool, size: float, atmosphere: str):
-        self.habitable = habitable
-        self.size = size
-        self.atmosphere = atmosphere
+#     def __init__(self, habitable: bool, size: float, atmosphere: str):
+#         self.habitable = habitable
+#         self.size = size
+#         self.atmosphere = atmosphere
 
-    def set_habitable(self, habitable):
-        self.habitable = habitable
+#     def set_habitable(self, habitable):
+#         self.habitable = habitable
     
-    def set_size(self, size):
-        self.size = size
+#     def set_size(self, size):
+#         self.size = size
 
-    def set_environment(self, environment):
-        self.environment = environment
+#     def set_environment(self, environment):
+#         self.environment = environment
         
-    def get_habitable(self):
-        return self.habitable
+#     def get_habitable(self):
+#         return self.habitable
     
-    def get_size(self):
-        return self.size
+#     def get_size(self):
+#         return self.size
     
-    def get_environment(self):
-        return self.environment
+#     def get_environment(self):
+#         return self.environment
 
 class Planet:
 
@@ -194,14 +195,23 @@ class Planet:
 df = pd.read_csv("cumulative_2025.10.04_13.06.32.csv")
 first_planet = df.iloc[0]
 
-planet = Planet(first_planet)
-print(planet)
+# planet = Planet(first_planet)
+# print(planet)
 
-print("testing get_environment: \n")
-for i in range(3):
-    row_dict = df.iloc[i].to_dict()
-    planet = Planet(row_dict)
-    env = planet.get_environment()
-    print(f"Row {i+1}: {env}")
+# print("testing get_environment: \n")
+# for i in range(500):
+#     row_dict = df.iloc[i].to_dict()
+#     planet = Planet(row_dict)
+#     if planet.get_habitable(): 
+#         env = planet.get_environment()
+#         print(f"Row {i+1}: {env}")
+
+## for testing purposes row 330 should be habitable / earthlike
+
+# row_dict = df.iloc[330].to_dict()
+# planet = Planet(row_dict)
+# print(planet.get_habitable())
+# print(planet.get_environment())
+
 
 
