@@ -31,11 +31,11 @@ This likelihood comes from a **Random Forest** classifier trained on the same NA
 
 ### ExoVis UI Without Focusing on a Specific Event
 
-![ExoVis UI Placeholder](docs/Exovis_no_focus.png)
+![ExoVis UI Placeholder](images/Exovis_no_focus.png)
 
 ### ExoVis UI After Focusing on a Specific Event
 
-![ExoVis UI Focus Placeholder](docs/Exovis_with_focus.png)
+![ExoVis UI Focus Placeholder](images/Exovis_with_focus.png)
 
 
 ---
