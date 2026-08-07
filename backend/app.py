@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Query
+from fastapi import FastAPI, Query, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 import pandas as pd
 from typing import List
@@ -6,28 +6,38 @@ import uvicorn
 import pydantic
 import os
 
-from backend.model.runtime.predict_one import predict_row
+from model.runtime.predict_one import predict_row
 
 CSV_FILE_NAME = f"{os.path.dirname(os.path.abspath(__file__))}/data/koi.csv"
 
-app = FastAPI()
+IS_PROD = os.getenv("IS_PROD") == "1"
+FRONTEND_ORIGIN = os.getenv("ALLOWED_ORIGIN", "http://localhost:5173")
+
+app = FastAPI(
+    docs_url=None if IS_PROD else "/docs",
+    redoc_url=None if IS_PROD else "/redoc",
+    openapi_url=None if IS_PROD else "/openapi.json",
+)
+
 
 # read csv
 DATA = pd.read_csv(CSV_FILE_NAME, comment='#')
 # create orbital radius column
 DATA["orbital_radius"] = DATA["koi_dor"] * DATA["koi_srad"]
 
-origins = [
-    "http://localhost:3000",
-]
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,
+    allow_origins=[FRONTEND_ORIGIN],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+
+@app.get("/")
+def root():
+    raise HTTPException(status_code=404, detail="Not found")
 
 @app.get("/exoplanets")
 async def get_exoplanets():
@@ -82,4 +92,6 @@ async def get_exoplanet_metrics(kepoi_name: List[str] = Query(default=[])):
     return data
 
 if __name__ == "__main__":
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    port = int(os.environ.get("PORT", 8000))
+    uvicorn.run(app, host="0.0.0.0", port=port)
+

@@ -13,11 +13,11 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 WORKDIR /app
 
 # Install Python deps
-COPY backend/requirements.txt ./requirements.txt
+COPY requirements.txt ./requirements.txt
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy backend code + artifacts
-COPY backend ./backend
+COPY . ./backend
 
 # For local runs; Railway injects $PORT and our CMD respects it
 EXPOSE 8000

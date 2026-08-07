@@ -3,10 +3,11 @@ import { ExoplanetListItem, ExoplanetDetails } from '../types/exoplanet';
 let customPlanetByKepoiName: Record<string, ExoplanetDetails> = {};
 let customPlanetKepoiNameList: string[] = [];
 
-const API_URL = "http://localhost:8000";
+// Read from Vite at build time (set VITE_API_URL in Railway / .env.production)
+const API_BASE = (import.meta.env.VITE_API_URL).replace(/\/$/, "");
 
 export async function fetchExoplanetList(): Promise<ExoplanetListItem[]> {
-  const response = await fetch(`${API_URL}/exoplanets`);
+  const response = await fetch(`${API_BASE}/exoplanets`);
   const data = await response.json();
   const customPlanets = customPlanetKepoiNameList.map(kepoi_name => customPlanetByKepoiName[kepoi_name]);
   // TODO: use all data
@@ -17,7 +18,7 @@ export async function fetchExoplanetDetails(kepoi_name: string): Promise<Exoplan
   if (customPlanetKepoiNameList.includes(kepoi_name)) {
     return customPlanetByKepoiName[kepoi_name];
   }
-  const response = await fetch(`${API_URL}/exoplanets/metrics?kepoi_name=${kepoi_name}`);
+  const response = await fetch(`${API_BASE}/exoplanets/metrics?kepoi_name=${encodeURIComponent(kepoi_name)}`);
   let data = await response.json();
   data = data[0];
   return data;
