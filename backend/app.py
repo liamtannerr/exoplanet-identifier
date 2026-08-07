@@ -6,7 +6,7 @@ import uvicorn
 import pydantic
 import os
 
-from backend.model.runtime.predict_one import predict_row
+from model.runtime.predict_one import predict_row
 
 CSV_FILE_NAME = f"{os.path.dirname(os.path.abspath(__file__))}/data/koi.csv"
 
@@ -92,5 +92,6 @@ async def get_exoplanet_metrics(kepoi_name: List[str] = Query(default=[])):
     return data
 
 if __name__ == "__main__":
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    port = int(os.environ.get("PORT", 8000))
+    uvicorn.run(app, host="0.0.0.0", port=port)
 
