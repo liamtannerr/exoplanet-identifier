@@ -28,7 +28,7 @@ DATA["orbital_radius"] = DATA["koi_dor"] * DATA["koi_srad"]
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[FRONTEND_ORIGIN],
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
