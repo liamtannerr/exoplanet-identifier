@@ -40,16 +40,20 @@ def root():
     raise HTTPException(status_code=404, detail="Not found")
 
 @app.get("/exoplanets")
-async def get_exoplanets():
+async def get_exoplanets(limit: int = Query(default=100)):
     """
-    Endpoint that reads koi.csv and returns the data as a list of JSON objects.
+    Endpoint that reads koi.csv and returns the data as a list of JSON objects,
+    limited to the specified number of records to reduce payload size.
     """
+    # Slice the dataframe before processing
+    limited_data = DATA.head(limit)
+    
     return [
         {
             "kepler_name": record.kepler_name,
             "kepoi_name": record.kepoi_name,
         }
-        for record in DATA.fillna("").itertuples()
+        for record in limited_data.fillna("").itertuples()
     ]
 
 class ExoplanetMetrics(pydantic.BaseModel):
