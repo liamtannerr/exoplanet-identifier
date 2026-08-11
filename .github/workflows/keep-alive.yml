@@ -1,0 +1,14 @@
+name: Render Keep-Alive Cron
+
+on:
+  schedule:
+    # Runs every 10 minutes
+    - cron: "*/10 * * * *"
+  workflow_dispatch:
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping API
+        run: curl -s "https://exoplanet-identifier-api.onrender.com/exoplanets?limit=1" > /dev/null
