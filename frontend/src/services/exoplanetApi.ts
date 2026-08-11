@@ -10,8 +10,9 @@ export async function fetchExoplanetList(): Promise<ExoplanetListItem[]> {
   const response = await fetch(`${API_BASE}/exoplanets`);
   const data = await response.json();
   const customPlanets = customPlanetKepoiNameList.map(kepoi_name => customPlanetByKepoiName[kepoi_name]);
-  // TODO: use all data
-  return [...customPlanets, ...data.slice(0, 100)];
+  
+  // The backend now handles the limit, so we return the data directly
+  return [...customPlanets, ...data];
 }
 
 export async function fetchExoplanetDetails(kepoi_name: string): Promise<ExoplanetDetails | null> {
