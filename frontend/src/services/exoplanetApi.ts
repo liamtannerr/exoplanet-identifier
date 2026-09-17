@@ -3,7 +3,7 @@ import { ExoplanetListItem, ExoplanetDetails } from '../types/exoplanet';
 let customPlanetByKepoiName: Record<string, ExoplanetDetails> = {};
 let customPlanetKepoiNameList: string[] = [];
 
-// Read from Vite at build time (set VITE_API_URL in Railway / .env.production)
+// Read from Vite at build time (set VITE_API_URL in Vercel / .env.production).
 const API_BASE = (import.meta.env.VITE_API_URL).replace(/\/$/, "");
 
 export async function fetchExoplanetList(): Promise<ExoplanetListItem[]> {
