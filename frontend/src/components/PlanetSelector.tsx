@@ -5,6 +5,7 @@ import { Button } from './ui/button';
 import { Badge } from './ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from './ui/dialog';
 import { Label } from './ui/label';
+import { BackendLoadingDialog } from './BackendLoadingDialog';
 import { Loader2, Search, Plus, X } from 'lucide-react';
 import { ExoplanetListItem, SelectedPlanet, ExoplanetDetails, PlanetVisualizationParams } from '../types/exoplanet';
 import { fetchExoplanetList, fetchExoplanetDetails, addCustomPlanet, getDisplayName, temperatureToStarColor, temperatureToPlanetColor, solarRadiiToAU } from '../services/exoplanetApi';
@@ -33,6 +34,7 @@ export const PlanetSelector: React.FC<PlanetSelectorProps> = ({
 }) => {
   const [allPlanets, setAllPlanets] = useState<ExoplanetListItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [addingPlanet, setAddingPlanet] = useState<string | null>(null);
   const [showAddDialog, setShowAddDialog] = useState(false);
@@ -51,10 +53,12 @@ export const PlanetSelector: React.FC<PlanetSelectorProps> = ({
   }, []);
 
   const loadPlanets = async () => {
+    setLoadError(false);
     try {
       const planets = await fetchExoplanetList();
       setAllPlanets(planets);
     } catch (error) {
+      setLoadError(true);
       console.error('Failed to load planets:', error);
     } finally {
       setLoading(false);
@@ -187,8 +191,18 @@ export const PlanetSelector: React.FC<PlanetSelectorProps> = ({
   if (loading) {
     return (
       <div className="h-full flex items-center justify-center">
-        <Loader2 className="animate-spin text-gray-400" size={24} />
+        <BackendLoadingDialog />
+        <Loader2 className="animate-spin text-gray-400" size={24} aria-label="Loading planets" />
         <span className="ml-2 text-gray-400">Loading exoplanets...</span>
+      </div>
+    );
+  }
+
+  if (loadError) {
+    return (
+      <div className="h-full flex flex-col items-center justify-center gap-4 text-center text-gray-300">
+        <p>Sorry, we couldn't load the planets. Please try again.</p>
+        <Button onClick={() => { setLoading(true); void loadPlanets(); }}>Try again</Button>
       </div>
     );
   }

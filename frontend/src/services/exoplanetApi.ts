@@ -8,6 +8,9 @@ const API_BASE = (import.meta.env.VITE_API_URL).replace(/\/$/, "");
 
 export async function fetchExoplanetList(): Promise<ExoplanetListItem[]> {
   const response = await fetch(`${API_BASE}/exoplanets`);
+  if (!response.ok) {
+    throw new Error(`Failed to load planets (${response.status})`);
+  }
   const data = await response.json();
   const customPlanets = customPlanetKepoiNameList.map(kepoi_name => customPlanetByKepoiName[kepoi_name]);
   
