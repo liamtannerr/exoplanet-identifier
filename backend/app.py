@@ -1,3 +1,5 @@
+from contextlib import asynccontextmanager
+
 from fastapi import FastAPI, Query, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 import pandas as pd
@@ -13,7 +15,17 @@ CSV_FILE_NAME = f"{os.path.dirname(os.path.abspath(__file__))}/data/koi.csv"
 IS_PROD = os.getenv("IS_PROD") == "1"
 FRONTEND_ORIGIN = os.getenv("ALLOWED_ORIGIN", "http://localhost:5173")
 
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Load and cache the model, then warm up inference before serving requests.
+    # An empty input uses the training means supplied by preprocessing.
+    predict_row({})
+    yield
+
+
 app = FastAPI(
+    lifespan=lifespan,
     docs_url=None if IS_PROD else "/docs",
     redoc_url=None if IS_PROD else "/redoc",
     openapi_url=None if IS_PROD else "/openapi.json",
